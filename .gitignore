@@ -1,0 +1,11 @@
+# Python
+__pycache__
+
+# Mypy
+.mypy_cache
+
+# IDE
+.idea
+
+# Local custom settings
+settings/local_custom.py
