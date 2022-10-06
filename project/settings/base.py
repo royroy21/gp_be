@@ -32,8 +32,9 @@ ALLOWED_HOSTS: List[str]
 
 # Application definition
 
-LOCAL_APPS: List[str]
-LOCAL_APPS = []
+LOCAL_APPS = [
+    "custom_user",
+]
 
 THIRD_PARTY_APPS = [
     "corsheaders",
@@ -96,28 +97,6 @@ DATABASES = {
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
-
-PASSWORD_VALIDATION_PATH = "django.contrib.auth.password_validation."
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": PASSWORD_VALIDATION_PATH + "UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": PASSWORD_VALIDATION_PATH + "MinimumLengthValidator",
-    },
-    {
-        "NAME": PASSWORD_VALIDATION_PATH + "CommonPasswordValidator",
-    },
-    {
-        "NAME": PASSWORD_VALIDATION_PATH + "NumericPasswordValidator",
-    },
-]
-
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -159,3 +138,7 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+
+# User
+AUTH_USER_MODEL = "custom_user.User"
