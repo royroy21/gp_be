@@ -16,6 +16,7 @@
 	psql \
 	manage \
 	shell \
+	test \
 	update_requirements \
 
 usage:
@@ -36,6 +37,7 @@ usage:
 	@echo "mypy............................Run mypy type hint inspection against project"
 	@echo "psql............................Connect to postgis server"
 	@echo "shell...........................Django's shell plus command"
+	@echo "test............................Run tests for the project"
 	@echo "update_requirements.............Update requirements file after adding a dependency"
 
 PROJECT_DIR=django_boilerplate
@@ -93,6 +95,9 @@ psql:
 
 shell:
 	$(MAKE) manage ARGS="shell_plus --ipython ${ARGS}"
+
+test:
+	$(MAKE) manage ARGS="test project${ARGS}"
 
 update_requirements:
 	@docker-compose run --rm backend pip freeze > requirements.txt
