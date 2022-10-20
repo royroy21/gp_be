@@ -9,3 +9,6 @@ __pycache__
 
 # Local custom settings
 settings/local_custom.py
+
+# Staticfiles
+project/staticfiles/
