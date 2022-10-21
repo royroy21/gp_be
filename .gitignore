@@ -12,3 +12,4 @@ settings/local_custom.py
 
 # Staticfiles
 project/staticfiles/
+project/static/
