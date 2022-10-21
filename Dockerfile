@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y \
     python-dev \
     tzdata \
     python3-pip \
-    gdal-bin \
-    libgdal-dev
+    gdal-bin
 RUN pip install -r requirements.txt
 COPY . /code/
