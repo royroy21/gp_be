@@ -36,13 +36,13 @@ class UserDetail(
         permissions.is_authenticated(request)
         return self.retrieve(request, *args, **kwargs)
 
-    def put(self, request, *args, **kwargs):
-        permissions.is_owner(request, self.get_object())
-        return self.update(request, *args, **kwargs)
-
     def patch(self, request, *args, **kwargs):
         permissions.is_owner(request, self.get_object())
         return self.partial_update(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        permissions.is_owner(request, self.get_object())
+        return self.update(request, *args, **kwargs)
 
 
 class UserList(generics.ListCreateAPIView):

@@ -40,7 +40,7 @@ usage:
 	@echo "test............................Run tests for the project"
 	@echo "update_requirements.............Update requirements file after adding a dependency"
 
-PROJECT_DIR=django_boilerplate
+PROJECT_DIR=gp_be
 
 attach:
 	@docker attach ${PROJECT_DIR}_backend_1

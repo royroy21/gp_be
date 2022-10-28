@@ -152,6 +152,13 @@ CHANNEL_LAYERS = {
 AUTH_USER_MODEL = "custom_user.User"
 
 
+# Authentications backend
+
+AUTHENTICATION_BACKENDS = {
+    "django.contrib.auth.backends.ModelBackend",
+    "custom_authentication.email_and_password_authentication.EmailBackend",
+}
+
 # DRF
 
 REST_FRAMEWORK = {
@@ -168,4 +175,7 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=360),
     "AUTH_HEADER_TYPES": ("JWT",),
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    "TOKEN_OBTAIN_SERIALIZER": (
+        "custom_token.serializers.CustomTokenObtainPairSerializer"
+    ),
 }
