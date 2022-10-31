@@ -27,7 +27,7 @@ class AuthTestCase(TestCase):
 
     def test_get_user_where_user_is_owner(self):
         response = self.drf_client.get(
-            path=reverse("user_detail", args=(self.user.id,)),
+            path=reverse("user-detail", args=(self.user.id,)),
         )
         expected_keys = ["id", "username", "email", "subscribed_to_emails"]
         self.assertEqual(sorted(response.data.keys()), sorted(expected_keys))
@@ -54,7 +54,7 @@ class AuthTestCase(TestCase):
             HTTP_AUTHORIZATION="JWT " + str(refresh.access_token),
         )
         response = drf_client.get(
-            path=reverse("user_detail", args=(self.user.id,)),
+            path=reverse("user-detail", args=(self.user.id,)),
         )
         expected_keys = ["id", "username"]
         self.assertEqual(sorted(response.data.keys()), sorted(expected_keys))
@@ -64,7 +64,7 @@ class AuthTestCase(TestCase):
     def test_get_user_where_user_is_unauthenticated(self):
         drf_client = APIClient()
         response = drf_client.get(
-            path=reverse("user_detail", args=(self.user.id,)),
+            path=reverse("user-detail", args=(self.user.id,)),
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -77,7 +77,7 @@ class AuthTestCase(TestCase):
             }
         )
         response = self.drf_client.patch(
-            path=reverse("user_detail", args=(self.user.id,)),
+            path=reverse("user-detail", args=(self.user.id,)),
             data=data,
             content_type="application/json",
         )
@@ -106,7 +106,7 @@ class AuthTestCase(TestCase):
             }
         )
         response = drf_client.patch(
-            path=reverse("user_detail", args=(self.user.id,)),
+            path=reverse("user-detail", args=(self.user.id,)),
             data=data,
             content_type="application/json",
         )
@@ -124,7 +124,7 @@ class AuthTestCase(TestCase):
             }
         )
         response = drf_client.patch(
-            path=reverse("user_detail", args=(self.user.id,)),
+            path=reverse("user-detail", args=(self.user.id,)),
             data=data,
             content_type="application/json",
         )
@@ -142,7 +142,7 @@ class AuthTestCase(TestCase):
             }
         )
         response = drf_client.post(
-            path=reverse("user_list"),
+            path=reverse("user-list"),
             data=data,
             content_type="application/json",
         )
@@ -153,7 +153,7 @@ class AuthTestCase(TestCase):
 
     def test_list_users_where_user_is_authenticated(self):
         response = self.drf_client.get(
-            path=reverse("user_list"),
+            path=reverse("user-list"),
         )
         expected_keys = ["id", "username"]
         self.assertEqual(len(response.data), 1)
@@ -167,6 +167,6 @@ class AuthTestCase(TestCase):
     def test_list_users_where_user_is_unauthenticated(self):
         drf_client = APIClient()
         response = drf_client.get(
-            path=reverse("user_list"),
+            path=reverse("user-list"),
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

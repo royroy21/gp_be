@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
-from rest_framework import generics, mixins
-from rest_framework.generics import GenericAPIView
+from rest_framework import status, viewsets
 from rest_framework.response import Response
 
 from project.core import permissions
@@ -9,45 +8,32 @@ from project.custom_user import serializers
 User = get_user_model()
 
 
-class UserDetail(
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    GenericAPIView,
-):
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
     serializer_class_if_not_owner = serializers.UserSerializerIfNotOwner
 
-    def get_serializer_if_not_owner_class(self, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs):
+        permissions.is_authenticated(request)
+        return super().retrieve(request, *args, **kwargs)
+
+    def get_serializer(self, instance=None, *args, **kwargs):
+        # If no instance this means instance is being created.
+        if instance is None:
+            return super().get_serializer(instance, *args, **kwargs)
+        if self.request.user == instance:
+            return super().get_serializer(instance, *args, **kwargs)
+        # Using this serializer so that emails are hidden.
+        return self.get_serializer_if_not_owner(instance, *args, **kwargs)
+
+    def get_serializer_if_not_owner(self, *args, **kwargs):
         serializer_class = self.serializer_class_if_not_owner
         kwargs.setdefault("context", self.get_serializer_context())
         return serializer_class(*args, **kwargs)
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance.id != request.user.id:
-            # Using this serializer so that emails are hidden.
-            serializer = self.get_serializer_if_not_owner_class(instance)
-        else:
-            serializer = self.get_serializer(instance)
-        return Response(serializer.data)
-
-    def get(self, request, *args, **kwargs):
-        permissions.is_authenticated(request)
-        return self.retrieve(request, *args, **kwargs)
-
-    def patch(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
         permissions.is_owner(request, self.get_object())
-        return self.partial_update(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        permissions.is_owner(request, self.get_object())
-        return self.update(request, *args, **kwargs)
-
-
-class UserList(generics.ListCreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = serializers.UserSerializer
+        return super().update(request, *args, **kwargs)
 
     def list(self, request, *args, **kwargs):
         permissions.is_authenticated(request)
@@ -55,3 +41,6 @@ class UserList(generics.ListCreateAPIView):
         # Using this serializer so that emails are hidden.
         serializer = serializers.UserSerializerIfNotOwner(queryset, many=True)
         return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_404_NOT_FOUND)
