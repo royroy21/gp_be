@@ -2,18 +2,20 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import update_last_login
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import PasswordField, api_settings, exceptions
+from rest_framework_simplejwt import serializers as simplejwt_serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class CustomTokenObtainPairSerializer(serializers.Serializer):
     email = serializers.CharField()
-    password = PasswordField()
+    password = simplejwt_serializers.PasswordField()
 
     token_class = RefreshToken
 
     default_error_messages = {
-        "no_active_account": _("No active account found with the given credentials")
+        "no_active_account": _(
+            "No active account found with the given credentials"
+        )  # noqa
     }
 
     def validate(self, attrs):
@@ -27,9 +29,10 @@ class CustomTokenObtainPairSerializer(serializers.Serializer):
             pass
 
         self.user = authenticate(**authenticate_kwargs)
+        api_settings = simplejwt_serializers.api_settings
 
         if not api_settings.USER_AUTHENTICATION_RULE(self.user):
-            raise exceptions.AuthenticationFailed(
+            raise simplejwt_serializers.exceptions.AuthenticationFailed(
                 self.error_messages["no_active_account"],
                 "no_active_account",
             )

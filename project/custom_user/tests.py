@@ -170,3 +170,29 @@ class AuthTestCase(TestCase):
             path=reverse("user-list"),
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_me_endpoint_using_valid_user(self):
+        response = self.drf_client.get(path=reverse("user-me"))
+        expected_keys = ["id", "username", "email", "subscribed_to_emails"]
+        self.assertEqual(sorted(response.data.keys()), sorted(expected_keys))
+        self.assertEqual(response.data["id"], self.user.id)
+        self.assertEqual(response.data["username"], self.user.username)
+        self.assertEqual(response.data["email"], self.user.email)
+        self.assertEqual(
+            response.data["subscribed_to_emails"],
+            self.user.subscribed_to_emails,
+        )
+
+    def test_me_endpoint_using_invalid_user(self):
+        drf_client = APIClient()
+        response = drf_client.get(path=reverse("user-me"))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_destroy(self):
+        response = self.drf_client.delete(
+            path=reverse("user-detail", args=(self.user.id,)),
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+        )

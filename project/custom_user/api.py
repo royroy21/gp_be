@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
-from rest_framework import status, viewsets
+from rest_framework import mixins, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from project.core import permissions
@@ -8,7 +9,13 @@ from project.custom_user import serializers
 User = get_user_model()
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
     serializer_class_if_not_owner = serializers.UserSerializerIfNotOwner
@@ -42,5 +49,8 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = serializers.UserSerializerIfNotOwner(queryset, many=True)
         return Response(serializer.data)
 
-    def destroy(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_404_NOT_FOUND)
+    @action(detail=False, methods=["get"])
+    def me(self, request):
+        permissions.is_authenticated(request)
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
