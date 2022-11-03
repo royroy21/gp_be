@@ -134,10 +134,12 @@ class AuthTestCase(TestCase):
 
     def test_create_user(self):
         drf_client = APIClient()
-        username = "jinky"
+        email = "jinky@example.com"
+        password = "cats"
         data = json.dumps(
             {
-                "username": username,
+                "email": email,
+                "password": password,
                 "subscribed_to_emails": True,
             }
         )
@@ -147,9 +149,18 @@ class AuthTestCase(TestCase):
             content_type="application/json",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        user = User.objects.filter(username=username).first()
+        user = User.objects.filter(email=email).first()
         self.assertTrue(user)
-        self.assertEqual(user.username, username)
+        self.assertEqual(user.email, email)
+        self.assertTrue(user.check_password(password))
+
+        # Check tokens return can be used to get user details
+        drf_client = APIClient()
+        drf_client.credentials(
+            HTTP_AUTHORIZATION="JWT " + str(response.data["access"]),
+        )
+        response = drf_client.get(path=reverse("user-me"))
+        self.assertEqual(response.data["email"], email)
 
     def test_list_users_where_user_is_authenticated(self):
         response = self.drf_client.get(

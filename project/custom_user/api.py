@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -19,6 +19,22 @@ class UserViewSet(
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
     serializer_class_if_not_owner = serializers.UserSerializerIfNotOwner
+
+    def create(self, request, *args, **kwargs):
+        kwargs.setdefault("context", self.get_serializer_context())
+        serializer = serializers.CreateUserSerializer(
+            data=request.data,
+            *args,
+            **kwargs,
+        )
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
 
     def retrieve(self, request, *args, **kwargs):
         permissions.is_authenticated(request)
