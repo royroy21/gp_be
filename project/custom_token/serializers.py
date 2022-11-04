@@ -18,6 +18,9 @@ class CustomTokenObtainPairSerializer(serializers.Serializer):
         )  # noqa
     }
 
+    def validate_email(self, value):
+        return value.lower()
+
     def validate(self, attrs):
         authenticate_kwargs = {
             "email": attrs["email"],
