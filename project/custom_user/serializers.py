@@ -2,6 +2,7 @@ import random
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt import serializers as simplejwt_serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -20,7 +21,15 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
-    email = serializers.CharField(required=True)
+    email = serializers.CharField(
+        required=True,
+        validators=[
+            UniqueValidator(
+                message="Account with this email already exists.",
+                queryset=User.objects.all(),
+            )
+        ],
+    )
     password = simplejwt_serializers.PasswordField(required=True)
 
     class Meta:
