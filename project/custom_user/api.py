@@ -41,12 +41,12 @@ class UserViewSet(
         return super().retrieve(request, *args, **kwargs)
 
     def get_serializer(self, instance=None, *args, **kwargs):
-        # If no instance this means instance is being created.
+        # If no instance, instance is being created.
         if instance is None:
             return super().get_serializer(instance, *args, **kwargs)
         if self.request.user == instance:
             return super().get_serializer(instance, *args, **kwargs)
-        # Using this serializer so that emails are hidden.
+        # Using this serializer so emails are hidden.
         return self.get_serializer_if_not_owner(instance, *args, **kwargs)
 
     def get_serializer_if_not_owner(self, *args, **kwargs):
