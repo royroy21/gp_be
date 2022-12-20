@@ -46,7 +46,7 @@ attach:
 	@docker attach ${PROJECT_DIR}_backend_1
 
 black:
-	@docker-compose run --rm backend black . ${ARGS}
+	@docker-compose run --rm backend black -l 79 . ${ARGS}
 
 black_check:
 	$(MAKE) black ARGS="--check"

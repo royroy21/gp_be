@@ -1,6 +1,7 @@
 from django.contrib.auth import models as auth_models
+from django.contrib.gis.db import models
+from django.contrib.gis.geos import Point
 from django.core.validators import EmailValidator
-from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -54,7 +55,10 @@ class UserManager(auth_models.BaseUserManager):
         )
 
 
-class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
+class User(  # type: ignore
+    auth_models.AbstractBaseUser,
+    auth_models.PermissionsMixin,
+):
 
     objects = UserManager()
 
@@ -82,6 +86,7 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
     last_login = models.DateTimeField(null=True, blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     subscribed_to_emails = models.BooleanField(default=True)
+    location = models.PointField(default=Point([]))
 
     USERNAME_FIELD = "username"
     EMAIL_FIELD = "email"

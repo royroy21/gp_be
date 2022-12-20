@@ -10,6 +10,7 @@ def is_authenticated(request):
 
     return True
 
+
 def is_owner(request, obj):
     if not request.user == obj:
         raise exceptions.PermissionDenied

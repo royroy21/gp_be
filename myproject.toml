@@ -1,5 +1,5 @@
 [tool.black]
-line-length = 79
+# line-length = 79  # black doesn't respect line length here. Setting at Makefile instead.
 skip-numeric-underscore-normalization = 1
 
 [tool.isort]
