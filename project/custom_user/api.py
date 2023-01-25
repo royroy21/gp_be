@@ -56,6 +56,7 @@ class UserViewSet(
 
     def update(self, request, *args, **kwargs):
         permissions.is_owner(request, self.get_object())
+        kwargs["partial"] = True
         return super().update(request, *args, **kwargs)
 
     def list(self, request, *args, **kwargs):

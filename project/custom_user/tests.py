@@ -7,6 +7,8 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from project.custom_user.serializers import UserSerializer
+
 User = get_user_model()
 
 
@@ -29,7 +31,13 @@ class AuthTestCase(TestCase):
         response = self.drf_client.get(
             path=reverse("user-detail", args=(self.user.id,)),
         )
-        expected_keys = ["id", "username", "email", "subscribed_to_emails"]
+        expected_keys = [
+            "id",
+            "username",
+            "email",
+            "subscribed_to_emails",
+            "location",
+        ]
         self.assertEqual(sorted(response.data.keys()), sorted(expected_keys))
         self.assertEqual(response.data["id"], self.user.id)
         self.assertEqual(response.data["username"], self.user.username)
@@ -184,7 +192,13 @@ class AuthTestCase(TestCase):
 
     def test_me_endpoint_using_valid_user(self):
         response = self.drf_client.get(path=reverse("user-me"))
-        expected_keys = ["id", "username", "email", "subscribed_to_emails"]
+        expected_keys = [
+            "id",
+            "username",
+            "email",
+            "subscribed_to_emails",
+            "location",
+        ]
         self.assertEqual(sorted(response.data.keys()), sorted(expected_keys))
         self.assertEqual(response.data["id"], self.user.id)
         self.assertEqual(response.data["username"], self.user.username)
@@ -207,3 +221,52 @@ class AuthTestCase(TestCase):
             response.status_code,
             status.HTTP_405_METHOD_NOT_ALLOWED,
         )
+
+    def test_update_location(self):
+        latitude = 51.513833
+        longitude = -0.0764861
+        data = json.dumps(
+            {
+                "location": {
+                    "latitude": latitude,
+                    "longitude": longitude,
+                }
+            }
+        )
+        response = self.drf_client.put(
+            path=reverse("user-detail", args=(self.user.id,)),
+            data=data,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.location.coords, (longitude, latitude))
+
+
+class UserSerializerTestCase(TestCase):
+    def setUp(self):
+        username = "fred"
+        password = "secret"
+        self.user = User.objects.create_user(
+            username,
+            f"{username}@example.com",
+            password,
+        )
+
+    def test_update_location(self):
+        latitude = 51.513833
+        longitude = -0.0764861
+        location = {
+            "location": {
+                "latitude": latitude,
+                "longitude": longitude,
+            }
+        }
+        serializer = UserSerializer(
+            self.user,
+            data=location,
+            partial=True,
+        )
+        self.assertTrue(serializer.is_valid())
+        user = serializer.save()
+        self.assertEqual(user.location.coords, (longitude, latitude))
