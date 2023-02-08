@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import List
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -34,7 +34,8 @@ ALLOWED_HOSTS: List[str]
 # Application definition
 
 LOCAL_APPS = [
-    "custom_user",
+    "project.custom_user",
+    "project.gig",
 ]
 
 THIRD_PARTY_APPS = [
