@@ -12,7 +12,11 @@ def is_authenticated(request):
 
 
 def is_owner(request, obj):
-    if not request.user == obj:
-        raise exceptions.PermissionDenied
+    if isinstance(obj, User):
+        if not request.user == obj:
+            raise exceptions.PermissionDenied
+    elif hasattr(obj, "user"):
+        if not request.user == obj.user:
+            raise exceptions.PermissionDenied
 
     return True

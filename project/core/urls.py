@@ -19,9 +19,11 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt import views
 
 from project.custom_user.api import UserViewSet
+from project.gig.api import GigViewSet
 
 router = DefaultRouter()
 router.register(r"user", UserViewSet, basename="user")
+router.register(r"gig", GigViewSet, basename="gig")
 
 urlpatterns = [
     path("api/", include(router.urls)),

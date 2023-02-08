@@ -5,8 +5,8 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-from rest_framework_simplejwt.tokens import RefreshToken
 
+from project.core.tests import setup_user, setup_user_with_drf_client
 from project.custom_user.serializers import UserSerializer
 
 User = get_user_model()
@@ -14,17 +14,9 @@ User = get_user_model()
 
 class AuthTestCase(TestCase):
     def setUp(self):
-        username = "fred"
-        password = "secret"
-        self.user = User.objects.create_user(
-            username,
-            f"{username}@example.com",
-            password,
-        )
-        self.drf_client = APIClient()
-        refresh = RefreshToken.for_user(self.user)
-        self.drf_client.credentials(
-            HTTP_AUTHORIZATION="JWT " + str(refresh.access_token),
+        self.user, self.drf_client = setup_user_with_drf_client(
+            username="fred",
+            password="pa$$word",
         )
 
     def test_get_user_where_user_is_owner(self):
@@ -49,17 +41,9 @@ class AuthTestCase(TestCase):
 
     def test_get_user_where_user_is_not_owner(self):
         # email should not be present in expected keys
-        username = "jiggy"
-        password = "secret"
-        user = User.objects.create_user(
-            username,
-            f"{username}@example.com",
-            password,
-        )
-        drf_client = APIClient()
-        refresh = RefreshToken.for_user(user)
-        drf_client.credentials(
-            HTTP_AUTHORIZATION="JWT " + str(refresh.access_token),
+        user, drf_client = setup_user_with_drf_client(
+            username="jiggy",
+            password="pa$$word",
         )
         response = drf_client.get(
             path=reverse("user-detail", args=(self.user.id,)),
@@ -95,17 +79,9 @@ class AuthTestCase(TestCase):
 
     def test_patch_user_where_user_is_not_owner(self):
         self.assertEqual(self.user.subscribed_to_emails, True)
-        username = "jiggy"
-        password = "secret"
-        user = User.objects.create_user(
-            username,
-            f"{username}@example.com",
-            password,
-        )
-        drf_client = APIClient()
-        refresh = RefreshToken.for_user(user)
-        drf_client.credentials(
-            HTTP_AUTHORIZATION="JWT " + str(refresh.access_token),
+        user, drf_client = setup_user_with_drf_client(
+            username="jiggy",
+            password="pa$$word",
         )
         data = json.dumps(
             {
@@ -245,13 +221,7 @@ class AuthTestCase(TestCase):
 
 class UserSerializerTestCase(TestCase):
     def setUp(self):
-        username = "fred"
-        password = "secret"
-        self.user = User.objects.create_user(
-            username,
-            f"{username}@example.com",
-            password,
-        )
+        self.user = setup_user(username="fred", password="pa$$word")
 
     def test_update_location(self):
         latitude = 51.513833
