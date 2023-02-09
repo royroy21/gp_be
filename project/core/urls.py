@@ -19,14 +19,19 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt import views
 
 from project.custom_user.api import UserViewSet
-from project.gig.api import GigViewSet
+from project.gig import api as gig_api
 
-router = DefaultRouter()
-router.register(r"user", UserViewSet, basename="user")
-router.register(r"gig", GigViewSet, basename="gig")
+api_router = DefaultRouter()
+api_router.register(r"user", UserViewSet, basename="user")
+api_router.register(r"gig", gig_api.GigViewSet, basename="gig")
+
+search_router = DefaultRouter()
+search_router.register(r"gig", gig_api.GigDocumentViewSet, basename="genre")
 
 urlpatterns = [
-    path("api/", include(router.urls)),
+    path("api/", include(api_router.urls)),
+    path("search/", include(search_router.urls)),
+    path("search/genre/suggest/", gig_api.suggest_genre),
     path("admin/", admin.site.urls),
     path(
         "api/token/",

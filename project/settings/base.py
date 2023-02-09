@@ -44,6 +44,8 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "whitenoise.runserver_nostatic",
+    "django_elasticsearch_dsl",
+    "django_elasticsearch_dsl_drf",
 ]
 
 INSTALLED_APPS = (
@@ -167,6 +169,24 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "DEFAULT_PAGINATION_CLASS": (
+        "rest_framework.pagination.PageNumberPagination"
+    ),
+    "PAGE_SIZE": 50,
+    "SEARCH_PARAM": "search",
+}
+
+# Elasticsearch configuration
+ELASTICSEARCH_DSL = {
+    "default": {
+        "hosts": "es-container:9200",
+    },
+}
+
+# Name of the Elasticsearch index
+ELASTICSEARCH_INDEX_NAMES = {
+    "project.gig.search_indexes.documents.genre": "genre",
+    "project.gig.search_indexes.documents.gig": "gig",
 }
 
 # DRF simple JWT
