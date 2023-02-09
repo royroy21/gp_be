@@ -9,14 +9,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for raw_genre in genres.genres:
-            genre = raw_genre.strip()
+            genre = raw_genre["genre"].strip()
+            rank = raw_genre["rank"]
             if genre in models.Genre.objects.values_list("genre", flat=True):
                 self.stdout.write(
                     self.style.ERROR("Skipping %s - already a genre" % genre)
                 )
                 continue
             else:
-                models.Genre.objects.create(genre=genre)
+                models.Genre.objects.create(genre=genre, rank=rank)
                 self.stdout.write(
                     self.style.SUCCESS("Adding genre %s" % genre)
                 )

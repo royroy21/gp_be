@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.db.models import signals
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -15,6 +16,10 @@ class GigTestCase(TestCase):
             password="pa$$word",
         )
         self.genre = models.Genre.objects.create(genre="Doom")
+
+        # Disables django_elasticsearch_dsl signals for updating documents.
+        signals.post_save.receivers = []
+
         self.user_gig = models.Gig.objects.create(
             user=self.user,
             title="Electric Doom",
@@ -35,16 +40,16 @@ class GigTestCase(TestCase):
     def test_filter_out_user_gigs(self):
         # Gigs user created shouldn't be visible without the `my_gigs` flag
         response = self.drf_client.get(path=reverse("gig-list"))
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["id"], self.other_gig.id)
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["id"], self.other_gig.id)
 
     def test_filter_with_my_gigs_flag(self):
         # Only gigs user created should be visible without the `my_gigs` flag
         response = self.drf_client.get(
             path=reverse("gig-list") + "?my_gigs=true",
         )
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["id"], self.user_gig.id)
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["id"], self.user_gig.id)
 
     def test_out_of_date_gig(self):
         # Gigs that have already started should not be displayed
@@ -57,5 +62,5 @@ class GigTestCase(TestCase):
             start_date=timezone.now() - timedelta(hours=1),
         )
         response = self.drf_client.get(path=reverse("gig-list"))
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["id"], self.other_gig.id)
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["id"], self.other_gig.id)

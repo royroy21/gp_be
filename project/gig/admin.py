@@ -7,6 +7,12 @@ class GenreAdmin(admin.ModelAdmin):
     ordering = ("genre",)
     search_fields = ("genre",)
 
+    list_display = (
+        "id",
+        "genre",
+        "rank",
+    )
+
 
 class GigAdmin(admin.ModelAdmin):
     ordering = ("-date_created",)
