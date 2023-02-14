@@ -179,13 +179,12 @@ REST_FRAMEWORK = {
 # Elasticsearch configuration
 ELASTICSEARCH_DSL = {
     "default": {
-        "hosts": "es-container:9200",
+        "hosts": "elasticsearch:9200",
     },
 }
 
 # Name of the Elasticsearch index
 ELASTICSEARCH_INDEX_NAMES = {
-    "project.gig.search_indexes.documents.genre": "genre",
     "project.gig.search_indexes.documents.gig": "gig",
 }
 

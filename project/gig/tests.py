@@ -1,17 +1,19 @@
+import json
 from datetime import timedelta
 
 from django.db.models import signals
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+from rest_framework import status
 
-from project.core.tests import setup_user, setup_user_with_drf_client
+from project.core import tests as core_tests
 from project.gig import models
 
 
 class GigTestCase(TestCase):
     def setUp(self):
-        self.user, self.drf_client = setup_user_with_drf_client(
+        self.user, self.drf_client = core_tests.setup_user_with_drf_client(
             username="fred",
             password="pa$$word",
         )
@@ -29,7 +31,7 @@ class GigTestCase(TestCase):
             start_date=timezone.now() + timedelta(hours=1),
         )
         self.other_gig = models.Gig.objects.create(
-            user=setup_user(username="jiggy", password="pa$$word"),
+            user=core_tests.setup_user(username="jiggy", password="pa$$word"),
             title="Electric Doom",
             venue="Brixton academy",
             location="Brixton",
@@ -39,14 +41,14 @@ class GigTestCase(TestCase):
 
     def test_filter_out_user_gigs(self):
         # Gigs user created shouldn't be visible without the `my_gigs` flag
-        response = self.drf_client.get(path=reverse("gig-list"))
+        response = self.drf_client.get(path=reverse("gig-api-list"))
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["id"], self.other_gig.id)
 
     def test_filter_with_my_gigs_flag(self):
         # Only gigs user created should be visible without the `my_gigs` flag
         response = self.drf_client.get(
-            path=reverse("gig-list") + "?my_gigs=true",
+            path=reverse("gig-api-list") + "?my_gigs=true",
         )
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["id"], self.user_gig.id)
@@ -54,13 +56,180 @@ class GigTestCase(TestCase):
     def test_out_of_date_gig(self):
         # Gigs that have already started should not be displayed
         models.Gig.objects.create(
-            user=setup_user(username="bungle", password="pa$$word"),
+            user=core_tests.setup_user(username="bungle", password="pa$$word"),
             title="Electric Doom",
             venue="Brixton academy",
             location="Brixton",
             genre=self.genre,
             start_date=timezone.now() - timedelta(hours=1),
         )
-        response = self.drf_client.get(path=reverse("gig-list"))
+        response = self.drf_client.get(path=reverse("gig-api-list"))
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["id"], self.other_gig.id)
+
+    def test_create_gig(self):
+        start_date = timezone.now() + timedelta(hours=1)
+        data = {
+            "user": {
+                "id": self.user.id,
+                "username": self.user.username,
+            },
+            "title": "Secret Gillaband gig!",
+            "venue": "To be announced",
+            "location": "Camden",
+            "genre": {
+                "id": self.genre.id,
+                "genre": self.genre.genre,
+            },
+            "start_date": start_date.isoformat(),
+        }
+        response = self.drf_client.post(
+            path=reverse("gig-api-list"),
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        gig_query = models.Gig.objects.filter(title=data["title"])
+        self.assertEqual(gig_query.count(), 1)
+        gig = gig_query.first()
+        self.assertEqual(gig.user, self.user)
+        self.assertEqual(gig.genre, self.genre)
+
+
+class GigElasticSearchTestCase(TestCase):
+    def setUp(self):
+        self.user, self.drf_client = core_tests.setup_user_with_drf_client(
+            username="fred",
+            password="pa$$word",
+        )
+        self.genre = models.Genre.objects.create(genre="Doom")
+
+    def create_gig(
+        self,
+        user=None,
+        title=None,
+        venue=None,
+        location=None,
+        genre=None,
+        start_date=None,
+        end_date=None,
+    ):
+        return models.Gig.objects.create(
+            user=user or self.user,
+            title=title or "Electric Doom",
+            venue=venue or "Brixton Academy",
+            location=location or "Brixton",
+            genre=genre or self.genre,
+            start_date=start_date or timezone.now() + timedelta(hours=1),
+            end_date=end_date,
+        )
+
+    @core_tests.with_elasticsearch
+    def test_search_for_own_gig(self):
+        # User created gigs should not appear in their searches.
+        self.create_gig()
+        response = self.drf_client.get(
+            path=reverse("gig-search-list") + "?search=doo",
+        )
+        self.assertEqual(len(response.data["results"]), 0)
+
+    @core_tests.with_elasticsearch
+    def test_search_for_gig_by_username(self):
+        # This should hit by providing the exact username
+        username = "jiggy"
+        gig = self.create_gig(
+            user=core_tests.setup_user(username=username, password="pa$$word")
+        )
+        response = self.drf_client.get(
+            path=reverse("gig-search-list") + f"?search={username}",
+        )
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["id"], gig.id)
+        self.assertEqual(
+            response.data["results"][0]["user"]["username"],
+            username,
+        )
+
+    @core_tests.with_elasticsearch
+    def test_search_for_gig_by_providing_incomplete_username(self):
+        # This should not hit as only providing exact usernames should work.
+        username = "jiggy"
+        self.create_gig(
+            user=core_tests.setup_user(username=username, password="pa$$word")
+        )
+        response = self.drf_client.get(
+            path=reverse("gig-search-list") + f"?search={username[:3]}",
+        )
+        self.assertEqual(len(response.data["results"]), 0)
+
+    @core_tests.with_elasticsearch
+    def test_search_on_title(self):
+        self.create_gig(
+            user=core_tests.setup_user(username="jiggy", password="pa$$word")
+        )
+        search_term = "electric"
+        response = self.drf_client.get(
+            path=reverse("gig-search-list") + f"?search={search_term}",
+        )
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertIn(
+            search_term,
+            response.data["results"][0]["title"].lower(),
+        )
+
+    @core_tests.with_elasticsearch
+    def test_search_on_genre(self):
+        self.create_gig(
+            user=core_tests.setup_user(username="jiggy", password="pa$$word")
+        )
+        search_term = "doom"
+        response = self.drf_client.get(
+            path=reverse("gig-search-list") + f"?search={search_term}",
+        )
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertIn(
+            search_term,
+            response.data["results"][0]["genre"]["genre"].lower(),
+        )
+
+    @core_tests.with_elasticsearch
+    def test_fuzzy_search_on_genre(self):
+        self.create_gig(
+            user=core_tests.setup_user(username="jiggy", password="pa$$word")
+        )
+        search_term = "dom"
+        response = self.drf_client.get(
+            path=reverse("gig-search-list") + f"?search={search_term}",
+        )
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertIn(
+            "doom",
+            response.data["results"][0]["genre"]["genre"].lower(),
+        )
+
+    @core_tests.with_elasticsearch
+    def test_search_for_out_of_date_gig(self):
+        # This should not hit. Only gigs in the future should hit.
+        self.create_gig(
+            user=core_tests.setup_user(username="jiggy", password="pa$$word"),
+            start_date=timezone.now() - timedelta(hours=1),
+        )
+        response = self.drf_client.get(
+            path=reverse("gig-search-list") + "?search=doom",
+        )
+        self.assertEqual(len(response.data["results"]), 0)
+
+    @core_tests.with_elasticsearch
+    def test_search_on_location(self):
+        self.create_gig(
+            user=core_tests.setup_user(username="jiggy", password="pa$$word"),
+        )
+        search_term = "brixton"
+        response = self.drf_client.get(
+            path=reverse("gig-search-list") + f"?search={search_term}",
+        )
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertIn(
+            search_term,
+            response.data["results"][0]["location"].lower(),
+        )

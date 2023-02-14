@@ -97,7 +97,7 @@ shell:
 	$(MAKE) manage ARGS="shell_plus --ipython ${ARGS}"
 
 test:
-	$(MAKE) manage ARGS="test project${ARGS}"
+	$(MAKE) manage ARGS="test project${ARGS} --settings=project.settings.test"
 
 update_requirements:
 	@docker-compose run --rm backend pip freeze > requirements.txt

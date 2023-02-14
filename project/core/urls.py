@@ -23,10 +23,14 @@ from project.gig import api as gig_api
 
 api_router = DefaultRouter()
 api_router.register(r"user", UserViewSet, basename="user")
-api_router.register(r"gig", gig_api.GigViewSet, basename="gig")
+api_router.register(r"gig", gig_api.GigViewSet, basename="gig-api")
 
 search_router = DefaultRouter()
-search_router.register(r"gig", gig_api.GigDocumentViewSet, basename="genre")
+search_router.register(
+    r"gig",
+    gig_api.GigDocumentViewSet,
+    basename="gig-search",
+)
 
 urlpatterns = [
     path("api/", include(api_router.urls)),

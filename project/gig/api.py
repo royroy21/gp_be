@@ -1,5 +1,5 @@
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django_elasticsearch_dsl_drf import filter_backends
@@ -17,7 +17,7 @@ class GigViewSet(viewsets.ModelViewSet):
     Gig API. List and retrieve are left open in regards to permissions.
     """
 
-    queryset = models.Gig.objects.filter(active=True)
+    queryset = models.Gig.objects.filter(active=True).order_by("start_date")
     serializer_class = serializers.GigSerializer
 
     def create(self, request, *args, **kwargs):
@@ -42,16 +42,14 @@ class GigViewSet(viewsets.ModelViewSet):
 
         my_gigs = self.request.query_params.get("my_gigs")
         if my_gigs:
-            return self.queryset.filter(user=self.request.user, active=True)
+            return self.queryset.filter(user=self.request.user)
 
-        return (
-            self.queryset.filter(active=True)
-            .exclude(user=self.request.user)
-            .exclude(start_date__lte=timezone.now())
+        return self.queryset.exclude(user=self.request.user).exclude(
+            start_date__lte=timezone.now()
         )
 
 
-class GigDocumentViewSet(dsl_drf_viewsets.DocumentViewSet):
+class GigDocumentViewSet(dsl_drf_viewsets.BaseDocumentViewSet):
     """
     Read only Gig API.
 
@@ -87,10 +85,23 @@ class GigDocumentViewSet(dsl_drf_viewsets.DocumentViewSet):
         queryset = super().get_queryset()
         queryset = queryset.filter("range", **{"start_date": {"gte": "now"}})
 
-        if not self.request.user.is_authenticated:
+        if self.request.user.is_authenticated:
             return queryset.exclude("match", user=self.request.user.username)
 
         return queryset
+
+    def retrieve(self, request, *args, **kwargs):
+        return HttpResponseBadRequest(
+            "The API route should be used for detail views.",
+        )
+
+    def list(self, request, *args, **kwargs):
+        search = self.request.query_params.get("search")
+        if not search:
+            return HttpResponseBadRequest(
+                "The API route should be used for non search list views.",
+            )
+        return super().list(request, *args, **kwargs)
 
 
 @require_http_methods(["GET"])

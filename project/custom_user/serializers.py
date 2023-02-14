@@ -72,3 +72,6 @@ class UserSerializerIfNotOwner(serializers.ModelSerializer):
             "id",
             "username",
         ]
+
+    def to_internal_value(self, data):
+        return User.objects.get(**data)

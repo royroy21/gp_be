@@ -16,6 +16,9 @@ class GenreSerializer(serializers.ModelSerializer):
             "genre",
         )
 
+    def to_internal_value(self, data):
+        return models.Genre.objects.get(**data)
+
 
 class GigSerializer(serializers.ModelSerializer):
     user = user_serializers.UserSerializerIfNotOwner()
