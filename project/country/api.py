@@ -14,8 +14,8 @@ def suggest_country(request):
     suggester so this view can be easily converted to use suggester in
     the future.
 
-    As example URL query could be:
-    http://localhost:8000/search/country/suggest/?country_suggest__completion=u
+    An example URL query could be:
+    search/country/suggest/?country_suggest__completion=u
     """
     # TODO - convert to Elastic search suggester
     suggest = request.GET.get("country_suggest__completion")

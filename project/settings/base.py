@@ -175,6 +175,7 @@ REST_FRAMEWORK = {
     ),
     "PAGE_SIZE": 50,
     "SEARCH_PARAM": "search",
+    "ORDERING_PARAM": "order_by",
 }
 
 # Elasticsearch configuration

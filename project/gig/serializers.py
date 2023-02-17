@@ -41,6 +41,7 @@ class GigSerializer(serializers.ModelSerializer):
             "country",
             "description",
             "genres",
+            "has_spare_ticket",
             "start_date",
             "end_date",
         )
@@ -62,6 +63,7 @@ class GigDocumentSerializer(serializers.Serializer):
     location = serializers.CharField(read_only=True)
     description = serializers.CharField(read_only=True)
     genres = serializers.SerializerMethodField()
+    has_spare_ticket = serializers.BooleanField(read_only=True)
     start_date = serializers.DateField(read_only=True)
     end_date = serializers.DateField(read_only=True)
 
@@ -75,6 +77,7 @@ class GigDocumentSerializer(serializers.Serializer):
             "location",
             "description",
             "genres",
+            "has_spare_ticket",
             "start_date",
             "end_date",
         )

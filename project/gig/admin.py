@@ -6,7 +6,6 @@ from project.gig import models
 class GenreAdmin(admin.ModelAdmin):
     ordering = ("genre",)
     search_fields = ("genre",)
-
     list_display = (
         "id",
         "genre",
@@ -16,6 +15,14 @@ class GenreAdmin(admin.ModelAdmin):
 
 class GigAdmin(admin.ModelAdmin):
     ordering = ("-date_created",)
+    list_display = (
+        "id",
+        "user",
+        "title",
+        "artist",
+        "has_spare_ticket",
+        "start_date",
+    )
     search_fields = (
         "title",
         "user__username",

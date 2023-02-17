@@ -120,6 +120,10 @@ class GigElasticSearchTestCase(TestCase):
             password="pa$$word",
         )
         self.genre = models.Genre.objects.create(genre="Doom")
+        self.default_country = country_models.CountryCode.objects.create(
+            country="United Kingdom",
+            code="GB",
+        )
 
     def create_gig(
         self,
@@ -134,17 +138,13 @@ class GigElasticSearchTestCase(TestCase):
         start_date=None,
         end_date=None,
     ):
-        default_country = country_models.CountryCode.objects.create(
-            country="United Kingdom",
-            code="GB",
-        )
         gig = models.Gig.objects.create(
             user=user or self.user,
             title=title or "Electric Bad",
             artist=artist or "Man Feelings",
             venue=venue or "Brixton Academy",
             location=location or "Brixton",
-            country=country or default_country,
+            country=country or self.default_country,
             has_spare_ticket=has_spare_ticket,
             start_date=start_date or timezone.now() + timedelta(hours=1),
             end_date=end_date,
@@ -265,3 +265,58 @@ class GigElasticSearchTestCase(TestCase):
             search_term,
             response.data["results"][0]["location"].lower(),
         )
+
+    @core_tests.with_elasticsearch
+    def test_search_on_has_spare_ticket(self):
+        user = core_tests.setup_user(username="jiggy", password="pa$$word")
+        gig = self.create_gig(
+            user=user,
+            has_spare_ticket=True,
+        )
+        self.create_gig(
+            user=user,
+        )
+        response = self.drf_client.get(
+            path=reverse("gig-search-list") + "?has_spare_ticket=true",
+        )
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["id"], gig.id)
+
+    @core_tests.with_elasticsearch
+    def test_search_on_start_date(self):
+        user = core_tests.setup_user(username="jiggy", password="pa$$word")
+        gig = self.create_gig(
+            user=user, start_date=timezone.now() + timedelta(days=5)
+        )
+        self.create_gig(
+            user=user,
+        )
+        date = timezone.now() + timedelta(days=4)
+        response = self.drf_client.get(
+            path=(
+                reverse("gig-search-list")
+                + f"?start_date__gt={date.now().date().isoformat()}"
+            ),
+        )
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["id"], gig.id)
+
+    @core_tests.with_elasticsearch
+    def test_order_by_start_date(self):
+        user = core_tests.setup_user(username="jiggy", password="pa$$word")
+        gig_second = self.create_gig(
+            user=user, start_date=timezone.now() + timedelta(days=5)
+        )
+        gig_first = self.create_gig(
+            user=user, start_date=timezone.now() + timedelta(days=4)
+        )
+        gig_last = self.create_gig(
+            user=user, start_date=timezone.now() + timedelta(days=6)
+        )
+        response = self.drf_client.get(
+            path=reverse("gig-search-list") + "?order_by=start_date",
+        )
+        self.assertEqual(len(response.data["results"]), 3)
+        self.assertEqual(response.data["results"][0]["id"], gig_first.id)
+        self.assertEqual(response.data["results"][1]["id"], gig_second.id)
+        self.assertEqual(response.data["results"][2]["id"], gig_last.id)
