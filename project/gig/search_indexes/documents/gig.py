@@ -25,6 +25,12 @@ class GigDocument(Document):
             "raw": StringField(analyzer="keyword"),
         },
     )
+    artist = StringField(
+        analyzer=anaylizers.html_strip,
+        fields={
+            "raw": StringField(analyzer="keyword"),
+        },
+    )
     venue = StringField(
         analyzer=anaylizers.html_strip,
         fields={
@@ -37,19 +43,29 @@ class GigDocument(Document):
             "raw": StringField(analyzer="keyword"),
         },
     )
+    country = StringField(
+        attr="country.country",
+        analyzer=anaylizers.html_strip,
+        fields={
+            "raw": StringField(analyzer="keyword"),
+        },
+    )
     description = StringField(
         analyzer=anaylizers.html_strip,
         fields={
             "raw": StringField(analyzer="keyword"),
         },
     )
-    genre = StringField(
-        attr="genre.genre",
+    genres = StringField(
+        attr="genres_indexing",
         analyzer=anaylizers.html_strip,
         fields={
-            "raw": StringField(analyzer="keyword"),
+            "raw": StringField(analyzer="keyword", multi=True),
         },
+        multi=True,
     )
+
+    has_spare_ticket = fields.BooleanField()
     start_date = fields.DateField()
     end_date = fields.DateField()
 

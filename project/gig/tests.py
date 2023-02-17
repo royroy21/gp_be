@@ -8,6 +8,7 @@ from django.utils import timezone
 from rest_framework import status
 
 from project.core import tests as core_tests
+from project.country import models as country_models
 from project.gig import models
 
 
@@ -18,6 +19,10 @@ class GigTestCase(TestCase):
             password="pa$$word",
         )
         self.genre = models.Genre.objects.create(genre="Doom")
+        self.country = country_models.CountryCode.objects.create(
+            country="United Kingdom",
+            code="GB",
+        )
 
         # Disables django_elasticsearch_dsl signals for updating documents.
         signals.post_save.receivers = []
@@ -25,19 +30,24 @@ class GigTestCase(TestCase):
         self.user_gig = models.Gig.objects.create(
             user=self.user,
             title="Electric Doom",
+            artist="Man Feelings",
             venue="Brixton academy",
             location="Brixton",
-            genre=self.genre,
+            country=self.country,
             start_date=timezone.now() + timedelta(hours=1),
         )
+        self.user_gig.genres.add(self.genre)
+
         self.other_gig = models.Gig.objects.create(
             user=core_tests.setup_user(username="jiggy", password="pa$$word"),
             title="Electric Doom",
+            artist="Man Feelings",
             venue="Brixton academy",
             location="Brixton",
-            genre=self.genre,
+            country=self.country,
             start_date=timezone.now() + timedelta(hours=1),
         )
+        self.other_gig.genres.add(self.genre)
 
     def test_filter_out_user_gigs(self):
         # Gigs user created shouldn't be visible without the `my_gigs` flag
@@ -55,14 +65,17 @@ class GigTestCase(TestCase):
 
     def test_out_of_date_gig(self):
         # Gigs that have already started should not be displayed
-        models.Gig.objects.create(
+        gig = models.Gig.objects.create(
             user=core_tests.setup_user(username="bungle", password="pa$$word"),
             title="Electric Doom",
+            artist="Man Feelings",
             venue="Brixton academy",
             location="Brixton",
-            genre=self.genre,
+            country=self.country,
             start_date=timezone.now() - timedelta(hours=1),
         )
+        gig.genres.add(self.genre)
+
         response = self.drf_client.get(path=reverse("gig-api-list"))
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["id"], self.other_gig.id)
@@ -75,12 +88,15 @@ class GigTestCase(TestCase):
                 "username": self.user.username,
             },
             "title": "Secret Gillaband gig!",
+            "artist": "Gillaband",
             "venue": "To be announced",
             "location": "Camden",
-            "genre": {
-                "id": self.genre.id,
-                "genre": self.genre.genre,
+            "country": {
+                "id": self.country.id,
+                "country": self.country.country,
+                "code": self.country.code,
             },
+            "genres": [{"id": self.genre.id, "genre": self.genre.genre}],
             "start_date": start_date.isoformat(),
         }
         response = self.drf_client.post(
@@ -93,7 +109,8 @@ class GigTestCase(TestCase):
         self.assertEqual(gig_query.count(), 1)
         gig = gig_query.first()
         self.assertEqual(gig.user, self.user)
-        self.assertEqual(gig.genre, self.genre)
+        self.assertEqual(gig.genres.count(), 1)
+        self.assertEqual(gig.genres.first().genre, self.genre.genre)
 
 
 class GigElasticSearchTestCase(TestCase):
@@ -108,21 +125,36 @@ class GigElasticSearchTestCase(TestCase):
         self,
         user=None,
         title=None,
+        artist=None,
         venue=None,
         location=None,
-        genre=None,
+        country=None,
+        genres=None,
+        has_spare_ticket=False,
         start_date=None,
         end_date=None,
     ):
-        return models.Gig.objects.create(
+        default_country = country_models.CountryCode.objects.create(
+            country="United Kingdom",
+            code="GB",
+        )
+        gig = models.Gig.objects.create(
             user=user or self.user,
-            title=title or "Electric Doom",
+            title=title or "Electric Bad",
+            artist=artist or "Man Feelings",
             venue=venue or "Brixton Academy",
             location=location or "Brixton",
-            genre=genre or self.genre,
+            country=country or default_country,
+            has_spare_ticket=has_spare_ticket,
             start_date=start_date or timezone.now() + timedelta(hours=1),
             end_date=end_date,
         )
+        if genres:
+            gig.genres.add(genres)
+        else:
+            gig.genres.add(self.genre)
+
+        return gig
 
     @core_tests.with_elasticsearch
     def test_search_for_own_gig(self):
@@ -189,7 +221,7 @@ class GigElasticSearchTestCase(TestCase):
         self.assertEqual(len(response.data["results"]), 1)
         self.assertIn(
             search_term,
-            response.data["results"][0]["genre"]["genre"].lower(),
+            response.data["results"][0]["genres"][0]["genre"].lower(),
         )
 
     @core_tests.with_elasticsearch
@@ -203,8 +235,8 @@ class GigElasticSearchTestCase(TestCase):
         )
         self.assertEqual(len(response.data["results"]), 1)
         self.assertIn(
-            "doom",
-            response.data["results"][0]["genre"]["genre"].lower(),
+            self.genre.genre.lower(),
+            response.data["results"][0]["genres"][0]["genre"].lower(),
         )
 
     @core_tests.with_elasticsearch

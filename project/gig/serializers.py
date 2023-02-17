@@ -1,6 +1,10 @@
+from copy import deepcopy
+
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from rest_framework import serializers
 
+from project.country import serializers as country_serializers
 from project.custom_user import serializers as user_serializers
 from project.gig import models
 from project.gig.search_indexes.documents.gig import GigDocument
@@ -22,7 +26,8 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class GigSerializer(serializers.ModelSerializer):
     user = user_serializers.UserSerializerIfNotOwner()
-    genre = GenreSerializer()
+    genres = GenreSerializer(many=True)
+    country = country_serializers.CountrySerializer()
 
     class Meta:
         model = models.Gig
@@ -30,13 +35,23 @@ class GigSerializer(serializers.ModelSerializer):
             "id",
             "user",
             "title",
+            "artist",
             "venue",
             "location",
+            "country",
             "description",
-            "genre",
+            "genres",
             "start_date",
             "end_date",
         )
+
+    @transaction.atomic
+    def create(self, validated_data):
+        copy_of_validated_data = deepcopy(validated_data)
+        genres = copy_of_validated_data.pop("genres")
+        gig = super().create(copy_of_validated_data)
+        gig.genres.add(*genres)
+        return gig
 
 
 class GigDocumentSerializer(serializers.Serializer):
@@ -46,7 +61,7 @@ class GigDocumentSerializer(serializers.Serializer):
     venue = serializers.CharField(read_only=True)
     location = serializers.CharField(read_only=True)
     description = serializers.CharField(read_only=True)
-    genre = serializers.SerializerMethodField()
+    genres = serializers.SerializerMethodField()
     start_date = serializers.DateField(read_only=True)
     end_date = serializers.DateField(read_only=True)
 
@@ -59,7 +74,7 @@ class GigDocumentSerializer(serializers.Serializer):
             "venue",
             "location",
             "description",
-            "genre",
+            "genres",
             "start_date",
             "end_date",
         )
@@ -72,9 +87,8 @@ class GigDocumentSerializer(serializers.Serializer):
         user = User.objects.get(username=obj.user)
         return user_serializers.UserSerializerIfNotOwner(user).data
 
-    def get_genre(self, obj):
-        genre = models.Genre.objects.filter(genre=obj.genre).first()
-        if genre:
-            return GenreSerializer(genre).data
-        else:
-            return None
+    def get_genres(self, obj):
+        return [
+            GenreSerializer(models.Genre.objects.get(genre=genre)).data
+            for genre in obj.genres
+        ]

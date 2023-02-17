@@ -41,6 +41,9 @@ def with_elasticsearch(func):
     @functools.wraps(func)
     def wrap(*args, **kwargs):
         try:
+            # Tearing down before test so to clear
+            # elasticsearch if a test beforehand errors.
+            teardown_elasticsearch()
             func(*args, **kwargs)
             teardown_elasticsearch()
         except ConnectionError:
@@ -48,7 +51,7 @@ def with_elasticsearch(func):
                 f"Could not run test `{func.__name__}` "
                 f"waiting for elasticsearch to start. "
                 f"To avoid this error please start the "
-                f"elasticsearch server before running tests."
+                f"elasticsearch server before running tests.\n"
             )
 
     return wrap

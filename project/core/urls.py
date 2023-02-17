@@ -18,6 +18,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt import views
 
+from project.country import api as country_api
 from project.custom_user.api import UserViewSet
 from project.gig import api as gig_api
 
@@ -35,6 +36,7 @@ search_router.register(
 urlpatterns = [
     path("api/", include(api_router.urls)),
     path("search/", include(search_router.urls)),
+    path("search/country/suggest/", country_api.suggest_country),
     path("search/genre/suggest/", gig_api.suggest_genre),
     path("admin/", admin.site.urls),
     path(

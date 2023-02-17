@@ -21,25 +21,30 @@ class Gig(BaseModel):
         related_name="gigs",
     )
     title = models.CharField(max_length=254)
-
-    # TODO - add band name here
-    # band = models.CharField(max_length=254)
-    # TODO - country field
-    # TODO - has spare ticket field
-
+    artist = models.CharField(max_length=254)
     venue = models.CharField(max_length=254)
     location = models.CharField(max_length=254)
-    description = models.TextField(default="", blank=True)
-    # TODO - many to many field?
-    genre = models.ForeignKey(
-        "gig.Genre",
+    country = models.ForeignKey(
+        "country.CountryCode",
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
         related_name="gigs",
     )
+    description = models.TextField(default="", blank=True)
+    genres = models.ManyToManyField(
+        "gig.Genre",
+        blank=True,
+        related_name="gigs",
+    )
+    has_spare_ticket = models.BooleanField(default=False)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField(default=None, blank=True, null=True)
 
     def __str__(self):
         return f"{self.title}, {self.user.get_username()}"
+
+    @property
+    def genres_indexing(self):
+        """Used in Elasticsearch indexing."""
+        return [genre.genre for genre in self.genres.all()]

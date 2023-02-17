@@ -69,16 +69,17 @@ class GigDocumentViewSet(dsl_drf_viewsets.BaseDocumentViewSet):
     search_fields = {
         "user": {"fuzziness": "AUTO"},
         "title": {"fuzziness": "AUTO"},
+        "artist": {"fuzziness": "AUTO"},
         "venue": {"fuzziness": "AUTO"},
         "location": {"fuzziness": "AUTO"},
+        "country": {"fuzziness": "AUTO"},
         "description": {"fuzziness": "AUTO"},
-        "genre": {"fuzziness": "AUTO"},
+        "genres": {"fuzziness": "AUTO"},
     }
     ordering = (
         "location",
         "title",
         "venue",
-        "genre",
     )
 
     def get_queryset(self):

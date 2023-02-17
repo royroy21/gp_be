@@ -13,7 +13,7 @@ class Command(BaseCommand):
             rank = raw_genre["rank"]
             if genre in models.Genre.objects.values_list("genre", flat=True):
                 self.stdout.write(
-                    self.style.ERROR("Skipping %s - already a genre" % genre)
+                    self.style.ERROR("Skipping %s - already exists" % genre)
                 )
                 continue
             else:
