@@ -82,16 +82,14 @@ class GigDocumentSerializer(serializers.Serializer):
             "end_date",
         )
 
-    def get_user(self, obj):
-        """
-        Elastic search needs this to be a string.
-        Converting here so to match GigSerializer.
-        """
-        user = User.objects.get(username=obj.user)
+    def get_user(self, document):
+        """ Converting here so to match GigSerializer. """
+        user = User.objects.get(username=document.user)
         return user_serializers.UserSerializerIfNotOwner(user).data
 
-    def get_genres(self, obj):
+    def get_genres(self, document):
+        """ Converting here so to match GigSerializer. """
         return [
             GenreSerializer(models.Genre.objects.get(genre=genre)).data
-            for genre in obj.genres
+            for genre in document.genres
         ]
