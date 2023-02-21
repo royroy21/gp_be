@@ -14,7 +14,7 @@ class GenreAdmin(admin.ModelAdmin):
 
 
 class GigAdmin(admin.ModelAdmin):
-    ordering = ("-date_created",)
+    ordering = ("start_date",)
     list_display = (
         "id",
         "user",
@@ -22,6 +22,7 @@ class GigAdmin(admin.ModelAdmin):
         "artist",
         "has_spare_ticket",
         "start_date",
+        "active",
     )
     search_fields = (
         "title",
