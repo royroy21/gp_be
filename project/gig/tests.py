@@ -285,17 +285,20 @@ class GigElasticSearchTestCase(TestCase):
     @core_tests.with_elasticsearch
     def test_search_on_start_date(self):
         user = core_tests.setup_user(username="jiggy", password="pa$$word")
-        gig = self.create_gig(
-            user=user, start_date=timezone.now() + timedelta(days=5)
+        self.create_gig(
+            user=user, start_date=timezone.now() + timedelta(days=1),
         )
         self.create_gig(
-            user=user,
+            user=user, start_date=timezone.now() + timedelta(days=2),
+        )
+        gig = self.create_gig(
+            user=user, start_date=timezone.now() + timedelta(days=5),
         )
         date = timezone.now() + timedelta(days=4)
         response = self.drf_client.get(
             path=(
                 reverse("gig-search-list")
-                + f"?start_date__gt={date.now().date().isoformat()}"
+                + f"?start_date__gt={date.date().isoformat()}"
             ),
         )
         self.assertEqual(len(response.data["results"]), 1)
