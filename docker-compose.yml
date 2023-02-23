@@ -57,6 +57,7 @@ services:
     restart: unless-stopped
     volumes:
       - .:/code
+      - ipython-data:/root/.ipython/profile_default
     ports:
       - "8000:8000"
     depends_on:
@@ -70,3 +71,4 @@ services:
 volumes:
   cache-data:
   database-data:
+  ipython-data:
