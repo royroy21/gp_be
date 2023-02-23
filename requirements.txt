@@ -35,6 +35,7 @@ elastic-transport==8.4.0
 elasticsearch==7.17.9
 elasticsearch-dsl==7.4.0
 executing==1.1.1
+Faker==17.0.0
 flake8==5.0.4
 GDAL==3.0.4
 geographiclib==2.0
