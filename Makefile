@@ -17,6 +17,7 @@
 	manage \
 	shell \
 	test \
+	up \
 	update_requirements \
 
 usage:
@@ -38,6 +39,7 @@ usage:
 	@echo "psql............................Connect to postgis server"
 	@echo "shell...........................Django's shell plus command"
 	@echo "test............................Run tests for the project"
+	@echo "up..............................docker-compose up"
 	@echo "update_requirements.............Update requirements file after adding a dependency"
 
 PROJECT_DIR=gp_be
@@ -98,6 +100,9 @@ shell:
 
 test:
 	$(MAKE) manage ARGS="test project${ARGS} --settings=project.settings.test"
+
+up:
+	@docker-compose up ${ARGS}
 
 update_requirements:
 	@docker-compose run --rm backend pip freeze > requirements.txt
