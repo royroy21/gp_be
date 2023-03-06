@@ -42,6 +42,7 @@ class GigViewSet(viewsets.ModelViewSet):
 
         my_gigs = self.request.query_params.get("my_gigs")
         if my_gigs:
+            # Return all gigs even those out of date.
             return self.queryset.filter(user=self.request.user)
 
         return self.queryset.exclude(user=self.request.user).exclude(
@@ -114,12 +115,16 @@ class GigDocumentViewSet(dsl_drf_viewsets.BaseDocumentViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        queryset = queryset.filter("range", **{"start_date": {"gte": "now"}})
+        if not self.request.user.is_authenticated:
+            return queryset.filter("range", **{"start_date": {"gte": "now"}})
 
-        if self.request.user.is_authenticated:
-            return queryset.exclude("match", user=self.request.user.username)
+        my_gigs = self.request.query_params.get("my_gigs")
+        if my_gigs:
+            # Return all gigs even those out of date.
+            return queryset.filter("match", user=self.request.user.username)
 
-        return queryset
+        queryset = queryset.exclude("match", user=self.request.user.username)
+        return queryset.filter("range", **{"start_date": {"gte": "now"}})
 
     def retrieve(self, request, *args, **kwargs):
         return HttpResponseBadRequest(

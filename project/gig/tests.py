@@ -314,3 +314,17 @@ class GigElasticSearchTestCase(TestCase):
         self.assertEqual(response.data["results"][0]["id"], gig_first.id)
         self.assertEqual(response.data["results"][1]["id"], gig_second.id)
         self.assertEqual(response.data["results"][2]["id"], gig_last.id)
+
+    @core_tests.with_elasticsearch
+    def test_filter_by_my_gigs(self):
+        other_user = core_tests.setup_user(
+            username="jiggy",
+            password="pa$$word",
+        )
+        self.create_gig(user=other_user)
+        my_gig = self.create_gig()
+        response = self.drf_client.get(
+            path=reverse("gig-search-list") + "?my_gigs=true",
+        )
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["id"], my_gig.id)
