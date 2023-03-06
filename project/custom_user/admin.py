@@ -9,7 +9,10 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = tuple(
         list(BaseUserAdmin.fieldsets)  # type: ignore
         + [
-            ("Extra", {"fields": ("subscribed_to_emails", "location")}),
+            (
+                "Extra",
+                {"fields": ("subscribed_to_emails", "location", "country")},
+            ),
         ]
     )
     readonly_fields = ("date_joined",)

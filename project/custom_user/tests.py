@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from project.core.tests import setup_user, setup_user_with_drf_client
+from project.country import models as country_models
 from project.custom_user.serializers import UserSerializer
 
 User = get_user_model()
@@ -29,6 +30,7 @@ class AuthTestCase(TestCase):
             "email",
             "subscribed_to_emails",
             "location",
+            "country",
         ]
         self.assertEqual(sorted(response.data.keys()), sorted(expected_keys))
         self.assertEqual(response.data["id"], self.user.id)
@@ -174,6 +176,7 @@ class AuthTestCase(TestCase):
             "email",
             "subscribed_to_emails",
             "location",
+            "country",
         ]
         self.assertEqual(sorted(response.data.keys()), sorted(expected_keys))
         self.assertEqual(response.data["id"], self.user.id)
@@ -199,6 +202,10 @@ class AuthTestCase(TestCase):
         )
 
     def test_update_location(self):
+        country = country_models.CountryCode.objects.create(
+            country="United Kingdom",
+            code="GB",
+        )
         latitude = 51.513833
         longitude = -0.0764861
         data = json.dumps(
@@ -206,7 +213,10 @@ class AuthTestCase(TestCase):
                 "location": {
                     "latitude": latitude,
                     "longitude": longitude,
-                }
+                },
+                "country": {
+                    "code": "GB",
+                },
             }
         )
         response = self.drf_client.put(
@@ -217,6 +227,7 @@ class AuthTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.user.refresh_from_db()
         self.assertEqual(self.user.location.coords, (longitude, latitude))
+        self.assertEqual(self.user.country, country)
 
 
 class UserSerializerTestCase(TestCase):
@@ -224,13 +235,20 @@ class UserSerializerTestCase(TestCase):
         self.user = setup_user(username="fred", password="pa$$word")
 
     def test_update_location(self):
+        country = country_models.CountryCode.objects.create(
+            country="United Kingdom",
+            code="GB",
+        )
         latitude = 51.513833
         longitude = -0.0764861
         location = {
             "location": {
                 "latitude": latitude,
                 "longitude": longitude,
-            }
+            },
+            "country": {
+                "code": "GB",
+            },
         }
         serializer = UserSerializer(
             self.user,
@@ -240,3 +258,4 @@ class UserSerializerTestCase(TestCase):
         self.assertTrue(serializer.is_valid())
         user = serializer.save()
         self.assertEqual(user.location.coords, (longitude, latitude))
+        self.assertEqual(self.user.country, country)

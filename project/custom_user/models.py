@@ -95,6 +95,13 @@ class User(  # type: ignore
     date_joined = models.DateTimeField(auto_now_add=True)
     subscribed_to_emails = models.BooleanField(default=True)
     location = models.PointField(default=Point([]))
+    country = models.ForeignKey(
+        "country.CountryCode",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="users",
+    )
 
     USERNAME_FIELD = "username"
     EMAIL_FIELD = "email"

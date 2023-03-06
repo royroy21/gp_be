@@ -6,6 +6,7 @@ from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt import serializers as simplejwt_serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from project.country import serializers as country_serializers
 from project.location.fields import LocationField
 
 User = get_user_model()
@@ -13,6 +14,7 @@ User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     location = LocationField()
+    country = country_serializers.CountrySerializer()
 
     class Meta:
         model = User
@@ -22,6 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "subscribed_to_emails",
             "location",
+            "country",
         ]
 
 
