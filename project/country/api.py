@@ -19,7 +19,12 @@ def suggest_country(request):
     """
     # TODO - convert to Elastic search suggester
     suggest = request.GET.get("country_suggest__completion")
-    query = Q(Q(country__startswith=suggest) | Q(country__icontains=suggest))
+    query = Q(
+        Q(country__startswith=suggest)
+        | Q(country__icontains=suggest)
+        | Q(code__icontains=suggest)
+        | Q(code__icontains=suggest)
+    )
     result = models.CountryCode.objects.filter(query).order_by("rank")[:50]
     return JsonResponse(
         serializers.CountrySerializer(result, many=True).data,
