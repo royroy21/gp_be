@@ -20,10 +20,15 @@ class Gig(BaseModel):
         on_delete=models.CASCADE,
         related_name="gigs",
     )
-    title = models.CharField(max_length=254)
-    artist = models.CharField(max_length=254)
-    venue = models.CharField(max_length=254)
-    location = models.CharField(max_length=254)
+    title = models.CharField(
+        max_length=254,
+        help_text="title, artist, band or festival",
+    )
+    description = models.TextField(default="", blank=True)
+    location = models.CharField(
+        max_length=254,
+        help_text="Venue, pub, warehouse or location",
+    )
     country = models.ForeignKey(
         "country.CountryCode",
         on_delete=models.SET_NULL,
@@ -31,7 +36,6 @@ class Gig(BaseModel):
         null=True,
         related_name="gigs",
     )
-    description = models.TextField(default="", blank=True)
     genres = models.ManyToManyField(
         "gig.Genre",
         blank=True,
@@ -39,7 +43,11 @@ class Gig(BaseModel):
     )
     has_spare_ticket = models.BooleanField(default=False)
     start_date = models.DateTimeField()
-    end_date = models.DateTimeField(default=None, blank=True, null=True)
+    end_date = models.DateTimeField(
+        default=None,
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return f"{self.title}, {self.user.get_username()}"
@@ -47,4 +55,4 @@ class Gig(BaseModel):
     @property
     def genres_indexing(self):
         """Used in Elasticsearch indexing."""
-        return [genre.genre for genre in self.genres.all()]
+        return [genre.genre for genre in self.genres.filter(active=True)]

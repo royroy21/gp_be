@@ -27,6 +27,7 @@ class Command(BaseCommand):
                     "executed on the local environment."
                 )
             )
+            return
         if not models.Genre.objects.exists():
             self.stdout.write(
                 self.style.ERROR(
@@ -34,6 +35,7 @@ class Command(BaseCommand):
                     "the import_genres management command."
                 )
             )
+            return
         if not country_models.CountryCode.objects.exists():
             self.stdout.write(
                 self.style.ERROR(
@@ -41,6 +43,7 @@ class Command(BaseCommand):
                     "the import_country_codes management command."
                 )
             )
+            return
         faker = Faker()
         number_of_gigs = 1000
         for n in range(number_of_gigs):
@@ -48,11 +51,9 @@ class Command(BaseCommand):
             gig = models.Gig.objects.create(
                 user=self.create_user(faker),
                 title=faker.unique.sentence(),
-                artist=faker.company(),
-                venue=faker.first_name(),
+                description=faker.paragraph(),
                 location=faker.company(),
                 country=country,
-                description=faker.paragraph(),
                 has_spare_ticket=faker.boolean(),
                 start_date=self.get_date(),
             )
@@ -63,7 +64,7 @@ class Command(BaseCommand):
 
     def create_user(self, faker):
         username = faker.first_name()
-        user_query = User.objects.filter(username=username)
+        user_query = User.objects.filter(username__iexact=username)
         if user_query.exists():
             return user_query.first()
         else:

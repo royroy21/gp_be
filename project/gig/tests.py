@@ -29,10 +29,8 @@ class GigTestCase(TestCase):
 
         self.user_gig = models.Gig.objects.create(
             user=self.user,
-            title="Electric Doom",
-            artist="Man Feelings",
-            venue="Brixton academy",
-            location="Brixton",
+            title="Man Feelings",
+            location="Brixton academy",
             country=self.country,
             start_date=timezone.now() + timedelta(hours=1),
         )
@@ -40,10 +38,8 @@ class GigTestCase(TestCase):
 
         self.other_gig = models.Gig.objects.create(
             user=core_tests.setup_user(username="jiggy", password="pa$$word"),
-            title="Electric Doom",
-            artist="Man Feelings",
-            venue="Brixton academy",
-            location="Brixton",
+            title="Man Feelings",
+            location="Brixton academy",
             country=self.country,
             start_date=timezone.now() + timedelta(hours=1),
         )
@@ -67,10 +63,8 @@ class GigTestCase(TestCase):
         # Gigs that have already started should not be displayed
         gig = models.Gig.objects.create(
             user=core_tests.setup_user(username="bungle", password="pa$$word"),
-            title="Electric Doom",
-            artist="Man Feelings",
-            venue="Brixton academy",
-            location="Brixton",
+            title="Man Feelings",
+            location="Brixton academy",
             country=self.country,
             start_date=timezone.now() - timedelta(hours=1),
         )
@@ -88,8 +82,6 @@ class GigTestCase(TestCase):
                 "username": self.user.username,
             },
             "title": "Secret Gillaband gig!",
-            "artist": "Gillaband",
-            "venue": "To be announced",
             "location": "Camden",
             "country": {
                 "id": self.country.id,
@@ -129,8 +121,6 @@ class GigElasticSearchTestCase(TestCase):
         self,
         user=None,
         title=None,
-        artist=None,
-        venue=None,
         location=None,
         country=None,
         genres=None,
@@ -140,10 +130,8 @@ class GigElasticSearchTestCase(TestCase):
     ):
         gig = models.Gig.objects.create(
             user=user or self.user,
-            title=title or "Electric Bad",
-            artist=artist or "Man Feelings",
-            venue=venue or "Brixton Academy",
-            location=location or "Brixton",
+            title=title or "Man Feelings",
+            location=location or "Brixton Academy",
             country=country or self.default_country,
             has_spare_ticket=has_spare_ticket,
             start_date=start_date or timezone.now() + timedelta(hours=1),
@@ -199,7 +187,7 @@ class GigElasticSearchTestCase(TestCase):
         self.create_gig(
             user=core_tests.setup_user(username="jiggy", password="pa$$word")
         )
-        search_term = "electric"
+        search_term = "feelings"
         response = self.drf_client.get(
             path=reverse("gig-search-list") + f"?search={search_term}",
         )

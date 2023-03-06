@@ -36,8 +36,6 @@ class GigSerializer(serializers.ModelSerializer):
             "id",
             "user",
             "title",
-            "artist",
-            "venue",
             "location",
             "country",
             "description",
@@ -60,7 +58,6 @@ class GigDocumentSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     user = serializers.SerializerMethodField()
     title = serializers.CharField(read_only=True)
-    venue = serializers.CharField(read_only=True)
     location = serializers.CharField(read_only=True)
     country = serializers.SerializerMethodField()
     description = serializers.CharField(read_only=True)
@@ -75,7 +72,6 @@ class GigDocumentSerializer(serializers.Serializer):
             "id",
             "user",
             "title",
-            "venue",
             "location",
             "country",
             "description",

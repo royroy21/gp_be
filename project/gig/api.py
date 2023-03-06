@@ -77,8 +77,6 @@ class GigDocumentViewSet(dsl_drf_viewsets.BaseDocumentViewSet):
     search_fields = {
         "user": {"fuzziness": "AUTO"},
         "title": {"fuzziness": "AUTO"},
-        "artist": {"fuzziness": "AUTO"},
-        "venue": {"fuzziness": "AUTO"},
         "location": {"fuzziness": "AUTO"},
         "country": {"fuzziness": "AUTO"},
         "description": {"fuzziness": "AUTO"},
@@ -86,8 +84,6 @@ class GigDocumentViewSet(dsl_drf_viewsets.BaseDocumentViewSet):
     }
     filter_fields = {
         "title": "title.raw",
-        "artist": "artist.raw",
-        "venue": "venue.raw",
         "location": "location.raw",
         "has_spare_ticket": {
             "field": "has_spare_ticket",
@@ -108,15 +104,11 @@ class GigDocumentViewSet(dsl_drf_viewsets.BaseDocumentViewSet):
     ordering_fields = {
         "start_date": "start_date",
         "title": "title.raw",
-        "artist": "artist.raw",
-        "venue": "venue.raw",
         "location": "location.raw",
     }
     ordering = (
         "start_date",
         "title",
-        "artist",
-        "venue",
         "location",
     )
 

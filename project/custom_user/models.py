@@ -44,7 +44,15 @@ class UserManager(auth_models.BaseUserManager):
             **extra_fields,
         )
 
-    def create_superuser(self, username, email, password, **extra_fields):
+    def create_superuser(
+        self,
+        username,
+        email=None,
+        password=None,
+        **extra_fields,
+    ):
+        if not email:
+            email = username + "@example.com"
         return self._create_user(
             username,
             email,

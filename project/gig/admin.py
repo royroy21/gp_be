@@ -19,13 +19,14 @@ class GigAdmin(admin.ModelAdmin):
         "id",
         "user",
         "title",
-        "artist",
+        "location",
         "has_spare_ticket",
         "start_date",
         "active",
     )
     search_fields = (
         "title",
+        "location",
         "user__username",
         "user__email",
         "user_id",
