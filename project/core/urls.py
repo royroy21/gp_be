@@ -35,6 +35,7 @@ search_router.register(
 
 urlpatterns = [
     path("api/", include(api_router.urls)),
+    path("api/country/", country_api.get_country),
     path("search/", include(search_router.urls)),
     path("search/country/suggest/", country_api.suggest_country),
     path("search/genre/suggest/", gig_api.suggest_genre),

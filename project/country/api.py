@@ -20,13 +20,29 @@ def suggest_country(request):
     # TODO - convert to Elastic search suggester
     suggest = request.GET.get("country_suggest__completion")
     query = Q(
-        Q(country__startswith=suggest)
+        Q(country__iexact=suggest)
+        | Q(code__iexact=suggest)
+        | Q(country__istartswith=suggest)
         | Q(country__icontains=suggest)
         | Q(code__icontains=suggest)
         | Q(code__icontains=suggest)
     )
-    result = models.CountryCode.objects.filter(query).order_by("rank")[:50]
+    result = models.CountryCode.objects.filter(query).order_by("rank")[:5]
     return JsonResponse(
         serializers.CountrySerializer(result, many=True).data,
         safe=False,
     )
+
+
+@require_http_methods(["GET"])
+def get_country(request):
+    """
+    Get country via ISO country code.
+
+    An example URL query could be:
+    api/country/?code=GB
+    """
+    code = request.GET.get("code", "")
+    result = models.CountryCode.objects.filter(code__iexact=code).first()
+    response = serializers.CountrySerializer(result).data if result else {}
+    return JsonResponse(response, safe=False)
