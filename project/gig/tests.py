@@ -84,8 +84,6 @@ class GigTestCase(TestCase):
             "title": "Secret Gillaband gig!",
             "location": "Camden",
             "country": {
-                "id": self.country.id,
-                "country": self.country.country,
                 "code": self.country.code,
             },
             "genres": [{"id": self.genre.id, "genre": self.genre.genre}],
