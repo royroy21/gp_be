@@ -77,10 +77,6 @@ class GigTestCase(TestCase):
     def test_create_gig(self):
         start_date = timezone.now() + timedelta(hours=1)
         data = {
-            "user": {
-                "id": self.user.id,
-                "username": self.user.username,
-            },
             "title": "Secret Gillaband gig!",
             "location": "Camden",
             "country": {

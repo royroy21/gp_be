@@ -26,7 +26,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class GigSerializer(serializers.ModelSerializer):
-    user = user_serializers.UserSerializerIfNotOwner()
+    user = user_serializers.UserSerializerIfNotOwner(required=False)
     genres = GenreSerializer(many=True)
     country = country_serializers.CountrySerializer()
 
@@ -48,6 +48,7 @@ class GigSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         copy_of_validated_data = deepcopy(validated_data)
+        copy_of_validated_data["user"] = self.context["request"].user
         genres = copy_of_validated_data.pop("genres")
         gig = super().create(copy_of_validated_data)
         gig.genres.add(*genres)
