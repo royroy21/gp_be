@@ -29,7 +29,7 @@ class GigAdmin(admin.ModelAdmin):
         "location",
         "user__username",
         "user__email",
-        "user_id",
+        "user__id",
     )
 
 
