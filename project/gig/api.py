@@ -45,6 +45,13 @@ class GigViewSet(viewsets.ModelViewSet):
             # Return all gigs even those out of date.
             return self.queryset.filter(user=self.request.user)
 
+        # User should be able to get any gig if lookup_field (pk) is provided.
+        if (
+            self.request.method == "GET"
+            and self.lookup_field in self.kwargs.keys()
+        ):
+            return self.queryset
+
         return self.queryset.exclude(user=self.request.user).exclude(
             start_date__lte=timezone.now()
         )
