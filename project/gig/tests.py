@@ -98,6 +98,36 @@ class GigTestCase(TestCase):
         self.assertEqual(gig.genres.count(), 1)
         self.assertEqual(gig.genres.first().genre, self.genre.genre)
 
+    def test_patch_gig(self):
+        updated_title = "Secret Man Feelings gig!"
+        data = {
+            "title": updated_title,
+        }
+        response = self.drf_client.patch(
+            path=reverse("gig-api-detail", args=(self.user_gig.id,)),
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["title"], updated_title)
+        self.user_gig.refresh_from_db()
+        self.assertEqual(self.user_gig.title, updated_title)
+
+    def test_patch_gig_if_not_owner(self):
+        _, drf_client = core_tests.setup_user_with_drf_client(
+            username="bungle",
+            password="pa$$word",
+        )
+        data = {
+            "title": "Secret Man Feelings gig!",
+        }
+        response = drf_client.patch(
+            path=reverse("gig-api-detail", args=(self.user_gig.id,)),
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 
 class GigElasticSearchTestCase(TestCase):
     def setUp(self):

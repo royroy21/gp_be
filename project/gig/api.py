@@ -28,6 +28,10 @@ class GigViewSet(viewsets.ModelViewSet):
         permissions.is_owner(request, self.get_object())
         return super().update(request, *args, **kwargs)
 
+    def partial_update(self, request, *args, **kwargs):
+        permissions.is_owner(request, self.get_object())
+        return super().partial_update(request, *args, **kwargs)
+
     def destroy(self, request, *args, **kwargs):
         permissions.is_owner(request, self.get_object())
         return super().destroy(request, *args, **kwargs)
@@ -47,7 +51,7 @@ class GigViewSet(viewsets.ModelViewSet):
 
         # User should be able to get any gig if lookup_field (pk) is provided.
         if (
-            self.request.method == "GET"
+            self.request.method in ["GET", "PUT", "PATCH"]
             and self.lookup_field in self.kwargs.keys()
         ):
             return self.queryset
