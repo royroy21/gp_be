@@ -100,8 +100,15 @@ class GigTestCase(TestCase):
 
     def test_patch_gig(self):
         updated_title = "Secret Man Feelings gig!"
+        updated_country = country_models.CountryCode.objects.create(
+            country="Poland",
+            code="PL",
+        )
+        updated_genre = self.genre = models.Genre.objects.create(genre="Indie")
         data = {
             "title": updated_title,
+            "country": {"code": updated_country.code},
+            "genres": [{"genre": updated_genre.genre}],
         }
         response = self.drf_client.patch(
             path=reverse("gig-api-detail", args=(self.user_gig.id,)),
@@ -110,8 +117,30 @@ class GigTestCase(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["title"], updated_title)
+        self.assertEqual(
+            response.data["country"]["code"], updated_country.code
+        )
+        self.assertEqual(len(response.data["genres"]), 1)
+        self.assertEqual(
+            response.data["genres"][0]["genre"], updated_genre.genre
+        )
         self.user_gig.refresh_from_db()
         self.assertEqual(self.user_gig.title, updated_title)
+        self.assertEqual(self.user_gig.country, updated_country)
+        self.assertEqual(self.user_gig.genres.first(), updated_genre)
+
+    def test_update_gig_with_invalid_genres_data(self):
+        # Checking if an ugly 500 isn't returned here.
+        data = {
+            "genres": [{"meow": True}],
+        }
+        response = self.drf_client.patch(
+            path=reverse("gig-api-detail", args=(self.user_gig.id,)),
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("non_field_errors", response.data)
 
     def test_patch_gig_if_not_owner(self):
         _, drf_client = core_tests.setup_user_with_drf_client(

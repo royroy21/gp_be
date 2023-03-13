@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 from django.contrib.auth import get_user_model
+from django.core import exceptions as django_exceptions
 from django.db import transaction
 from rest_framework import serializers
 
@@ -22,13 +23,18 @@ class GenreSerializer(serializers.ModelSerializer):
         )
 
     def to_internal_value(self, data):
-        return models.Genre.objects.get(**data)
+        try:
+            return models.Genre.objects.get(**data)
+        except models.Genre.DoesNotExist:
+            raise serializers.ValidationError({"Genres do not exist"})
+        except django_exceptions.FieldError:
+            raise serializers.ValidationError("Invalid Genres")
 
 
 class GigSerializer(serializers.ModelSerializer):
-    user = user_serializers.UserSerializerIfNotOwner(required=False)
-    genres = GenreSerializer(many=True)
-    country = country_serializers.CountrySerializer()
+    user = user_serializers.UserSerializerIfNotOwner(read_only=True)
+    genres = GenreSerializer(many=True, read_only=True)
+    country = country_serializers.CountrySerializer(read_only=True)
 
     class Meta:
         model = models.Gig
@@ -45,13 +51,40 @@ class GigSerializer(serializers.ModelSerializer):
             "end_date",
         )
 
+    def validate(self, attrs):
+        genres = self.initial_data.pop("genres", None)
+        if genres:
+            attrs["genres"] = GenreSerializer(
+                data=genres, many=True
+            ).to_internal_value(data=genres)
+
+        country = self.initial_data.pop("country", None)
+        if country:
+            attrs["country"] = country_serializers.CountrySerializer(
+                data=country
+            ).to_internal_value(data=country)
+
+        return super().validate(attrs)
+
     @transaction.atomic
     def create(self, validated_data):
         copy_of_validated_data = deepcopy(validated_data)
         copy_of_validated_data["user"] = self.context["request"].user
-        genres = copy_of_validated_data.pop("genres")
+        genres = copy_of_validated_data.pop("genres", None)
         gig = super().create(copy_of_validated_data)
-        gig.genres.add(*genres)
+        if genres:
+            gig.genres.add(*genres)
+        return gig
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        copy_of_validated_data = deepcopy(validated_data)
+        copy_of_validated_data["user"] = self.context["request"].user
+        genres = copy_of_validated_data.pop("genres", None)
+        gig = super().update(instance, copy_of_validated_data)
+        if genres:
+            gig.genres.clear()
+            gig.genres.add(*genres)
         return gig
 
 
