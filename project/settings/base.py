@@ -173,7 +173,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": (
         "rest_framework.pagination.PageNumberPagination"
     ),
-    "PAGE_SIZE": 50,
+    "PAGE_SIZE": 25,
     "SEARCH_PARAM": "search",
     "ORDERING_PARAM": "order_by",
 }
