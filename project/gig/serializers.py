@@ -32,7 +32,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class GigSerializer(serializers.ModelSerializer):
-    user = user_serializers.UserSerializerIfNotOwner(read_only=True)
+    user = user_serializers.UserSerializerMinimum(read_only=True)
     genres = GenreSerializer(many=True, read_only=True)
     country = country_serializers.CountrySerializer(read_only=True)
 
@@ -118,7 +118,10 @@ class GigDocumentSerializer(serializers.Serializer):
     def get_user(self, document):
         """Converting here so to match GigSerializer."""
         user = User.objects.get(username=document.user)
-        return user_serializers.UserSerializerIfNotOwner(user).data
+        return user_serializers.UserSerializerMinimum(
+            user,
+            context=self.context,
+        ).data
 
     def get_genres(self, document):
         """Converting here so to match GigSerializer."""

@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from rest_framework import mixins, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -9,16 +9,10 @@ from project.custom_user import serializers
 User = get_user_model()
 
 
-class UserViewSet(
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet,
-):
-    queryset = User.objects.all()
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all().order_by("date_joined")
     serializer_class = serializers.UserSerializer
-    serializer_class_if_not_owner = serializers.UserSerializerIfNotOwner
+    serializer_class_if_not_owner = serializers.UserSerializerMinimum
 
     def create(self, request, *args, **kwargs):
         kwargs.setdefault("context", self.get_serializer_context())
@@ -59,12 +53,21 @@ class UserViewSet(
         kwargs["partial"] = True
         return super().update(request, *args, **kwargs)
 
+    def get_queryset(self):
+        if (
+            self.request.user.is_authenticated
+            and self.request.method == "GET"
+            and self.lookup_field not in self.kwargs.keys()
+        ):
+            return self.queryset.exclude(id=self.request.user.id)
+        return self.queryset
+
     def list(self, request, *args, **kwargs):
         permissions.is_authenticated(request)
-        queryset = self.get_queryset()
-        # Using this serializer so that emails are hidden.
-        serializer = serializers.UserSerializerIfNotOwner(queryset, many=True)
-        return Response(serializer.data)
+        return super().list(request, *args, **kwargs)
+
+    def destroy(self, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     @action(detail=False, methods=["get"])
     def me(self, request):

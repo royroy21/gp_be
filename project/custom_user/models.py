@@ -69,6 +69,8 @@ class User(  # type: ignore
 ):
 
     objects = UserManager()
+    USERNAME_FIELD = "username"
+    EMAIL_FIELD = "email"
 
     username = models.CharField(
         max_length=254,
@@ -102,6 +104,8 @@ class User(  # type: ignore
         null=True,
         related_name="users",
     )
+
+    # Preferences
     DARK = "dark"
     LIGHT = "light"
     THEME_CHOICES = [
@@ -113,9 +117,17 @@ class User(  # type: ignore
         default=DARK,
         choices=THEME_CHOICES,
     )
-
-    USERNAME_FIELD = "username"
-    EMAIL_FIELD = "email"
+    KM = "kilometers"
+    MILES = "miles"
+    UNIT_CHOICES = [
+        (KM, KM),
+        (MILES, MILES),
+    ]
+    units = models.CharField(
+        max_length=254,
+        default=MILES,
+        choices=UNIT_CHOICES,
+    )
 
     def __str__(self):
         return f"{self.username} {self.email}"

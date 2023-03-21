@@ -1,6 +1,7 @@
 import json
 from datetime import timedelta
 
+from django.contrib.gis.geos import Point
 from django.db.models import signals
 from django.test import TestCase
 from django.urls import reverse
@@ -156,6 +157,21 @@ class GigTestCase(TestCase):
             content_type="application/json",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_list_gigs_and_get_distance_from_user(self):
+        self.user.location = Point(-0.0779528, 51.5131749)
+        self.user.save()
+
+        other_user = self.other_gig.user
+        other_user.location = Point(-0.0780935, 51.5133267)
+        other_user.save()
+
+        response = self.drf_client.get(path=reverse("gig-api-list"))
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(
+            response.data["results"][0]["user"]["distance_from_user"],
+            "0.01 miles",
+        )
 
 
 class GigElasticSearchTestCase(TestCase):

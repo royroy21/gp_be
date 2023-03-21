@@ -13,6 +13,7 @@ def get_distance_between_points(
     point_1: Point,
     point_2: Point,
     units: Units,
+    round_to: int = 2,
 ) -> float:
     """
     Returns the distance between two Python Point objects.
@@ -20,6 +21,6 @@ def get_distance_between_points(
     """
     distance = geopy_distance(point_1, point_2)
     if units == Units.MILES.value:
-        return distance.miles
+        return round(distance.miles, round_to)
     else:
-        return distance.kilometers
+        return round(distance.kilometers, round_to)

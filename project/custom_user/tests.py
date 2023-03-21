@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.auth import get_user_model
+from django.contrib.gis.geos import Point
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -8,7 +9,7 @@ from rest_framework.test import APIClient
 
 from project.core.tests import setup_user, setup_user_with_drf_client
 from project.country import models as country_models
-from project.custom_user.serializers import UserSerializer
+from project.custom_user import serializers
 
 User = get_user_model()
 
@@ -24,14 +25,7 @@ class AuthTestCase(TestCase):
         response = self.drf_client.get(
             path=reverse("user-detail", args=(self.user.id,)),
         )
-        expected_keys = [
-            "id",
-            "username",
-            "email",
-            "subscribed_to_emails",
-            "location",
-            "country",
-        ]
+        expected_keys = serializers.UserSerializer.Meta.fields
         self.assertEqual(sorted(response.data.keys()), sorted(expected_keys))
         self.assertEqual(response.data["id"], self.user.id)
         self.assertEqual(response.data["username"], self.user.username)
@@ -50,7 +44,7 @@ class AuthTestCase(TestCase):
         response = drf_client.get(
             path=reverse("user-detail", args=(self.user.id,)),
         )
-        expected_keys = ["id", "username"]
+        expected_keys = serializers.UserSerializerMinimum.Meta.fields
         self.assertEqual(sorted(response.data.keys()), sorted(expected_keys))
         self.assertEqual(response.data["id"], self.user.id)
         self.assertEqual(response.data["username"], self.user.username)
@@ -149,17 +143,24 @@ class AuthTestCase(TestCase):
         self.assertEqual(response.data["email"], email)
 
     def test_list_users_where_user_is_authenticated(self):
+        other_user, _ = setup_user_with_drf_client(
+            username="mr_meow",
+            password="pa$$word",
+        )
         response = self.drf_client.get(
             path=reverse("user-list"),
         )
-        expected_keys = ["id", "username"]
-        self.assertEqual(len(response.data), 1)
+        expected_keys = serializers.UserSerializerMinimum.Meta.fields
+        self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(
-            sorted(response.data[0].keys()),
+            sorted(response.data["results"][0].keys()),
             sorted(expected_keys),
         )
-        self.assertEqual(response.data[0]["id"], self.user.id)
-        self.assertEqual(response.data[0]["username"], self.user.username)
+        self.assertEqual(response.data["results"][0]["id"], other_user.id)
+        self.assertEqual(
+            response.data["results"][0]["username"],
+            other_user.username,
+        )
 
     def test_list_users_where_user_is_unauthenticated(self):
         drf_client = APIClient()
@@ -170,14 +171,7 @@ class AuthTestCase(TestCase):
 
     def test_me_endpoint_using_valid_user(self):
         response = self.drf_client.get(path=reverse("user-me"))
-        expected_keys = [
-            "id",
-            "username",
-            "email",
-            "subscribed_to_emails",
-            "location",
-            "country",
-        ]
+        expected_keys = serializers.UserSerializer.Meta.fields
         self.assertEqual(sorted(response.data.keys()), sorted(expected_keys))
         self.assertEqual(response.data["id"], self.user.id)
         self.assertEqual(response.data["username"], self.user.username)
@@ -229,6 +223,24 @@ class AuthTestCase(TestCase):
         self.assertEqual(self.user.location.coords, (longitude, latitude))
         self.assertEqual(self.user.country, country)
 
+    def test_list_users_and_get_distance_from_user(self):
+        self.user.location = Point(-0.0779528, 51.5131749)
+        self.user.save()
+
+        other_user, _ = setup_user_with_drf_client(
+            username="mr_meow",
+            password="pa$$word",
+        )
+        other_user.location = Point(-0.0780935, 51.5133267)
+        other_user.save()
+
+        response = self.drf_client.get(path=reverse("user-list"))
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(
+            response.data["results"][0]["distance_from_user"],
+            "0.01 miles",
+        )
+
 
 class UserSerializerTestCase(TestCase):
     def setUp(self):
@@ -250,7 +262,7 @@ class UserSerializerTestCase(TestCase):
                 "code": "GB",
             },
         }
-        serializer = UserSerializer(
+        serializer = serializers.UserSerializer(
             self.user,
             data=location,
             partial=True,

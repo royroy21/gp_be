@@ -8,6 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from project.country import serializers as country_serializers
 from project.location.fields import LocationField
+from project.location.helpers import get_distance_between_points
 
 User = get_user_model()
 
@@ -69,13 +70,26 @@ class CreateUserSerializer(serializers.ModelSerializer):
         }
 
 
-class UserSerializerIfNotOwner(serializers.ModelSerializer):
+class UserSerializerMinimum(serializers.ModelSerializer):
+    distance_from_user = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = [
             "id",
             "username",
+            "distance_from_user",
         ]
 
-    def to_internal_value(self, data):
-        return User.objects.get(**data)
+    def get_distance_from_user(self, obj):
+        user = self.context["request"].user
+        if user.is_authenticated:
+            if user.location and obj.location:
+                distance = get_distance_between_points(
+                    point_1=user.location,
+                    point_2=obj.location,
+                    units=user.units,
+                )
+                return f"{distance} {user.units}"
+
+        return None
