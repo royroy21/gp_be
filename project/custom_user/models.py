@@ -102,6 +102,17 @@ class User(  # type: ignore
         null=True,
         related_name="users",
     )
+    DARK = "dark"
+    LIGHT = "light"
+    THEME_CHOICES = [
+        (DARK, DARK),
+        (LIGHT, LIGHT),
+    ]
+    theme = models.CharField(
+        max_length=254,
+        default=DARK,
+        choices=THEME_CHOICES,
+    )
 
     USERNAME_FIELD = "username"
     EMAIL_FIELD = "email"

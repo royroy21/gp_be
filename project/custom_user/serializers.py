@@ -25,6 +25,7 @@ class UserSerializer(serializers.ModelSerializer):
             "subscribed_to_emails",
             "location",
             "country",
+            "theme",
         ]
 
 
