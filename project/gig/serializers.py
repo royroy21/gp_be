@@ -64,11 +64,10 @@ class GigSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         copy_of_validated_data = deepcopy(validated_data)
         copy_of_validated_data["user"] = self.context["request"].user
-        genres = copy_of_validated_data.pop("genres", None)
+        genres = copy_of_validated_data.pop("genres", [])
         gig = super().update(instance, copy_of_validated_data)
-        if genres:
-            gig.genres.clear()
-            gig.genres.add(*genres)
+        gig.genres.clear()
+        gig.genres.add(*genres)
         return gig
 
 

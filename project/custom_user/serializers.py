@@ -64,10 +64,10 @@ class UserSerializer(serializers.ModelSerializer):
             copy_of_validated_data["units"] = self.get_units(
                 copy_of_validated_data["country"]
             )
-        genres = copy_of_validated_data.pop("genres", None)
+        genres = copy_of_validated_data.pop("genres", [])
         user = super().update(instance, copy_of_validated_data)
-        if genres:
-            user.genres.add(*genres)
+        user.genres.clear()
+        user.genres.add(*genres)
         return user
 
 

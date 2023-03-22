@@ -16,6 +16,8 @@ class UserAdmin(BaseUserAdmin):
                         "subscribed_to_emails",
                         "location",
                         "country",
+                        "bio",
+                        "genres",
                         "theme",
                         "units",
                         "preferred_units",
