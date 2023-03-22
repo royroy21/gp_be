@@ -8,6 +8,7 @@ from django.utils import timezone
 from faker import Faker
 
 from project.country import models as country_models
+from project.genre import models as genre_models
 from project.gig import models
 
 User = get_user_model()
@@ -28,7 +29,7 @@ class Command(BaseCommand):
                 )
             )
             return
-        if not models.Genre.objects.exists():
+        if not genre_models.Genre.objects.exists():
             self.stdout.write(
                 self.style.ERROR(
                     "Failed. No genres found. Please run "
@@ -75,8 +76,8 @@ class Command(BaseCommand):
             )
 
     def get_genres(self):
-        genre_ids = models.Genre.objects.values_list("id", flat=True)
-        return models.Genre.objects.filter(
+        genre_ids = genre_models.Genre.objects.values_list("id", flat=True)
+        return genre_models.Genre.objects.filter(
             id__in=random.choices(genre_ids, k=random.randint(1, 5)),
         )
 

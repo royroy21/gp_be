@@ -3,16 +3,6 @@ from django.contrib import admin
 from project.gig import models
 
 
-class GenreAdmin(admin.ModelAdmin):
-    ordering = ("genre",)
-    search_fields = ("genre",)
-    list_display = (
-        "id",
-        "genre",
-        "rank",
-    )
-
-
 class GigAdmin(admin.ModelAdmin):
     ordering = ("start_date",)
     list_display = (
@@ -33,5 +23,4 @@ class GigAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(models.Genre, GenreAdmin)
 admin.site.register(models.Gig, GigAdmin)

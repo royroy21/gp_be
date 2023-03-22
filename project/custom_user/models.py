@@ -105,6 +105,14 @@ class User(  # type: ignore
         related_name="users",
     )
 
+    # Personal
+    bio = models.TextField(default="", blank=True)
+    genres = models.ManyToManyField(
+        "genre.Genre",
+        blank=True,
+        related_name="users",
+    )
+
     # Preferences
     DARK = "dark"
     LIGHT = "light"

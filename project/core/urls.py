@@ -20,6 +20,7 @@ from rest_framework_simplejwt import views
 
 from project.country import api as country_api
 from project.custom_user.api import UserViewSet
+from project.genre import api as genre_api
 from project.gig import api as gig_api
 
 api_router = DefaultRouter()
@@ -38,7 +39,7 @@ urlpatterns = [
     path("api/country/", country_api.get_country),
     path("search/", include(search_router.urls)),
     path("search/country/suggest/", country_api.suggest_country),
-    path("search/genre/suggest/", gig_api.suggest_genre),
+    path("search/genre/suggest/", genre_api.suggest_genre),
     path("admin/", admin.site.urls),
     path(
         "api/token/",

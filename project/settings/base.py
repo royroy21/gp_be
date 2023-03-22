@@ -36,6 +36,7 @@ ALLOWED_HOSTS: List[str]
 LOCAL_APPS = [
     "project.custom_user",
     "project.country",
+    "project.genre",
     "project.gig",
 ]
 

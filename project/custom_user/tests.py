@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 from project.core.tests import setup_user, setup_user_with_drf_client
 from project.country import models as country_models
 from project.custom_user import serializers
+from project.genre import models as genre_models
 
 User = get_user_model()
 
@@ -44,7 +45,7 @@ class AuthTestCase(TestCase):
         response = drf_client.get(
             path=reverse("user-detail", args=(self.user.id,)),
         )
-        expected_keys = serializers.UserSerializerMinimum.Meta.fields
+        expected_keys = serializers.UserSerializerIfNotOwner.Meta.fields
         self.assertEqual(sorted(response.data.keys()), sorted(expected_keys))
         self.assertEqual(response.data["id"], self.user.id)
         self.assertEqual(response.data["username"], self.user.username)
@@ -58,15 +59,13 @@ class AuthTestCase(TestCase):
 
     def test_patch_user_where_user_is_owner(self):
         self.assertEqual(self.user.subscribed_to_emails, True)
-        data = json.dumps(
-            {
-                "username": self.user.username,
-                "subscribed_to_emails": False,
-            }
-        )
+        data = {
+            "username": self.user.username,
+            "subscribed_to_emails": False,
+        }
         response = self.drf_client.patch(
             path=reverse("user-detail", args=(self.user.id,)),
-            data=data,
+            data=json.dumps(data),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -79,15 +78,13 @@ class AuthTestCase(TestCase):
             username="jiggy",
             password="pa$$word",
         )
-        data = json.dumps(
-            {
-                "username": self.user.username,
-                "subscribed_to_emails": False,
-            }
-        )
+        data = {
+            "username": self.user.username,
+            "subscribed_to_emails": False,
+        }
         response = drf_client.patch(
             path=reverse("user-detail", args=(self.user.id,)),
-            data=data,
+            data=json.dumps(data),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -97,15 +94,13 @@ class AuthTestCase(TestCase):
     def test_patch_user_where_user_is_unauthenticated(self):
         self.assertEqual(self.user.subscribed_to_emails, True)
         drf_client = APIClient()
-        data = json.dumps(
-            {
-                "username": self.user.username,
-                "subscribed_to_emails": False,
-            }
-        )
+        data = {
+            "username": self.user.username,
+            "subscribed_to_emails": False,
+        }
         response = drf_client.patch(
             path=reverse("user-detail", args=(self.user.id,)),
-            data=data,
+            data=json.dumps(data),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -116,16 +111,14 @@ class AuthTestCase(TestCase):
         drf_client = APIClient()
         email = "jinky@example.com"
         password = "cats"
-        data = json.dumps(
-            {
-                "email": email,
-                "password": password,
-                "subscribed_to_emails": True,
-            }
-        )
+        data = {
+            "email": email,
+            "password": password,
+            "subscribed_to_emails": True,
+        }
         response = drf_client.post(
             path=reverse("user-list"),
-            data=data,
+            data=json.dumps(data),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -150,7 +143,7 @@ class AuthTestCase(TestCase):
         response = self.drf_client.get(
             path=reverse("user-list"),
         )
-        expected_keys = serializers.UserSerializerMinimum.Meta.fields
+        expected_keys = serializers.UserSerializerIfNotOwner.Meta.fields
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(
             sorted(response.data["results"][0].keys()),
@@ -195,6 +188,14 @@ class AuthTestCase(TestCase):
             status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
+
+class UserAPITestCase(TestCase):
+    def setUp(self):
+        self.user, self.drf_client = setup_user_with_drf_client(
+            username="fred",
+            password="pa$$word",
+        )
+
     def test_update_location(self):
         country = country_models.CountryCode.objects.create(
             country="United Kingdom",
@@ -202,20 +203,18 @@ class AuthTestCase(TestCase):
         )
         latitude = 51.513833
         longitude = -0.0764861
-        data = json.dumps(
-            {
-                "location": {
-                    "latitude": latitude,
-                    "longitude": longitude,
-                },
-                "country": {
-                    "code": "GB",
-                },
-            }
-        )
+        data = {
+            "location": {
+                "latitude": latitude,
+                "longitude": longitude,
+            },
+            "country": {
+                "code": "GB",
+            },
+        }
         response = self.drf_client.put(
             path=reverse("user-detail", args=(self.user.id,)),
-            data=data,
+            data=json.dumps(data),
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 200)
@@ -259,6 +258,38 @@ class AuthTestCase(TestCase):
             response.data["results"][0]["distance_from_user"],
             "0.01 miles",
         )
+
+    def test_update_genres(self):
+        doom = genre_models.Genre.objects.create(genre="Doom")
+        noise = genre_models.Genre.objects.create(genre="Noise")
+        data = {
+            "genres": [
+                {"genre": doom.genre},
+                {"genre": noise.genre},
+            ]
+        }
+        response = self.drf_client.patch(
+            path=reverse("user-detail", args=(self.user.id,)),
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.genres.count(), 2)
+
+    def test_update_username_that_already_exists(self):
+        username = "jiggy"
+        setup_user(username=username, password="pa$$word")
+        data = {
+            "username": username,
+        }
+        response = self.drf_client.patch(
+            path=reverse("user-detail", args=(self.user.id,)),
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("username", response.data)
 
 
 class UserSerializerTestCase(TestCase):

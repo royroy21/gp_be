@@ -12,7 +12,7 @@ User = get_user_model()
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by("date_joined")
     serializer_class = serializers.UserSerializer
-    serializer_class_if_not_owner = serializers.UserSerializerMinimum
+    serializer_class_if_not_owner = serializers.UserSerializerIfNotOwner
 
     def create(self, request, *args, **kwargs):
         kwargs.setdefault("context", self.get_serializer_context())

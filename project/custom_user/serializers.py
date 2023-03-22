@@ -8,6 +8,7 @@ from rest_framework_simplejwt import serializers as simplejwt_serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from project.country import serializers as country_serializers
+from project.genre import serializers as genre_serializers
 from project.location.fields import LocationField
 from project.location.helpers import get_distance_between_points
 
@@ -23,6 +24,7 @@ COUNTRIES_THAT_USE_MILES = [
 class UserSerializer(serializers.ModelSerializer):
     location = LocationField()
     country = country_serializers.CountrySerializer()
+    genres = genre_serializers.GenreSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
@@ -33,10 +35,22 @@ class UserSerializer(serializers.ModelSerializer):
             "subscribed_to_emails",
             "location",
             "country",
+            "bio",
+            "genres",
             "theme",
             "units",
             "preferred_units",
         ]
+
+    def validate(self, attrs):
+        genres = self.initial_data.pop("genres", None)
+        if genres:
+            attrs["genres"] = genre_serializers.GenreSerializer(
+                data=genres,
+                many=True,
+            ).to_internal_value(data=genres)
+
+        return super().validate(attrs)
 
     def get_units(self, country):
         if country.code in COUNTRIES_THAT_USE_MILES:
@@ -50,7 +64,11 @@ class UserSerializer(serializers.ModelSerializer):
             copy_of_validated_data["units"] = self.get_units(
                 copy_of_validated_data["country"]
             )
-        return super().update(instance, copy_of_validated_data)
+        genres = copy_of_validated_data.pop("genres", None)
+        user = super().update(instance, copy_of_validated_data)
+        if genres:
+            user.genres.add(*genres)
+        return user
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
@@ -93,15 +111,23 @@ class CreateUserSerializer(serializers.ModelSerializer):
         }
 
 
-class UserSerializerMinimum(serializers.ModelSerializer):
+class UserSerializerIfNotOwner(serializers.ModelSerializer):
     distance_from_user = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = [
-            "id",
-            "username",
-            "distance_from_user",
+        fields = ["distance_from_user"] + [
+            field
+            for field in UserSerializer.Meta.fields
+            if field
+            not in [
+                "email",
+                "subscribed_to_emails",
+                "location",
+                "theme",
+                "units",
+                "preferred_units",
+            ]
         ]
 
     def get_distance_from_user(self, obj):

@@ -10,16 +10,17 @@ from rest_framework import status
 
 from project.core import tests as core_tests
 from project.country import models as country_models
+from project.genre import models as genre_models
 from project.gig import models
 
 
-class GigTestCase(TestCase):
+class GigAPITestCase(TestCase):
     def setUp(self):
         self.user, self.drf_client = core_tests.setup_user_with_drf_client(
             username="fred",
             password="pa$$word",
         )
-        self.genre = models.Genre.objects.create(genre="Doom")
+        self.genre = genre_models.Genre.objects.create(genre="Doom")
         self.country = country_models.CountryCode.objects.create(
             country="United Kingdom",
             code="GB",
@@ -105,7 +106,9 @@ class GigTestCase(TestCase):
             country="Poland",
             code="PL",
         )
-        updated_genre = self.genre = models.Genre.objects.create(genre="Indie")
+        updated_genre = self.genre = genre_models.Genre.objects.create(
+            genre="Indie"
+        )
         data = {
             "title": updated_title,
             "country": {"code": updated_country.code},
@@ -174,13 +177,13 @@ class GigTestCase(TestCase):
         )
 
 
-class GigElasticSearchTestCase(TestCase):
+class GigElasticSearchAPITestCase(TestCase):
     def setUp(self):
         self.user, self.drf_client = core_tests.setup_user_with_drf_client(
             username="fred",
             password="pa$$word",
         )
-        self.genre = models.Genre.objects.create(genre="Doom")
+        self.genre = genre_models.Genre.objects.create(genre="Doom")
         self.default_country = country_models.CountryCode.objects.create(
             country="United Kingdom",
             code="GB",

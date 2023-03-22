@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
-from project.gig import models
-from project.gig.data import genres
+from project.genre import models
+from project.genre.data import genres
 
 
 class Command(BaseCommand):

@@ -1,6 +1,3 @@
-# type: ignore
-# TODO - mypy with django-stubs is having trouble with abstract classes.
-# Check if future versions has corrected this :/
 from django.db import models
 
 from project.core.models import BaseModel

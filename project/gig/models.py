@@ -1,17 +1,6 @@
-# type: ignore
-# TODO - mypy with django-stubs is having trouble with abstract classes.
-# Check if future versions has corrected this :/
 from django.db import models
 
 from project.core.models import BaseModel
-
-
-class Genre(BaseModel):
-    genre = models.CharField(max_length=254, unique=True)
-    rank = models.IntegerField(default=1)
-
-    def __str__(self):
-        return self.genre
 
 
 class Gig(BaseModel):
@@ -35,7 +24,7 @@ class Gig(BaseModel):
         related_name="gigs",
     )
     genres = models.ManyToManyField(
-        "gig.Genre",
+        "genre.Genre",
         blank=True,
         related_name="gigs",
     )
