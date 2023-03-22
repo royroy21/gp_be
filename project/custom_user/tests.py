@@ -238,6 +238,25 @@ class AuthTestCase(TestCase):
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(
             response.data["results"][0]["distance_from_user"],
+            "0.02 kilometers",
+        )
+
+    def test_preferred_units(self):
+        self.user.location = Point(-0.0779528, 51.5131749)
+        self.user.preferred_units = User.MILES
+        self.user.save()
+
+        other_user, _ = setup_user_with_drf_client(
+            username="mr_meow",
+            password="pa$$word",
+        )
+        other_user.location = Point(-0.0780935, 51.5133267)
+        other_user.save()
+
+        response = self.drf_client.get(path=reverse("user-list"))
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(
+            response.data["results"][0]["distance_from_user"],
             "0.01 miles",
         )
 
@@ -271,3 +290,33 @@ class UserSerializerTestCase(TestCase):
         user = serializer.save()
         self.assertEqual(user.location.coords, (longitude, latitude))
         self.assertEqual(self.user.country, country)
+
+    def test_update_country_check_units_update_to_miles(self):
+        country = country_models.CountryCode.objects.create(
+            country="United Kingdom",
+            code="GB",
+        )
+        data = {"country": {"code": country.code}}
+        serializer = serializers.UserSerializer(
+            self.user,
+            data=data,
+            partial=True,
+        )
+        self.assertTrue(serializer.is_valid())
+        user = serializer.save()
+        self.assertEqual(user.units, User.MILES)
+
+    def test_update_country_check_units_update_to_kilometers(self):
+        country = country_models.CountryCode.objects.create(
+            country="France",
+            code="FR",
+        )
+        data = {"country": {"code": country.code}}
+        serializer = serializers.UserSerializer(
+            self.user,
+            data=data,
+            partial=True,
+        )
+        self.assertTrue(serializer.is_valid())
+        user = serializer.save()
+        self.assertEqual(user.units, User.KM)

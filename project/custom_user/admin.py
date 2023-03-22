@@ -11,7 +11,16 @@ class UserAdmin(BaseUserAdmin):
         + [
             (
                 "Extra",
-                {"fields": ("subscribed_to_emails", "location", "country")},
+                {
+                    "fields": (
+                        "subscribed_to_emails",
+                        "location",
+                        "country",
+                        "theme",
+                        "units",
+                        "preferred_units",
+                    )
+                },
             ),
         ]
     )

@@ -88,8 +88,8 @@ class User(  # type: ignore
         },
         default="",
     )
-    first_name = models.CharField(max_length=254, default="")
-    last_name = models.CharField(max_length=254, default="")
+    first_name = models.CharField(max_length=254, default="", blank=True)
+    last_name = models.CharField(max_length=254, default="", blank=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -125,7 +125,14 @@ class User(  # type: ignore
     ]
     units = models.CharField(
         max_length=254,
-        default=MILES,
+        default=KM,
+        choices=UNIT_CHOICES,
+    )
+    preferred_units = models.CharField(
+        max_length=254,
+        default=None,
+        blank=True,
+        null=True,
         choices=UNIT_CHOICES,
     )
 

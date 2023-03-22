@@ -170,7 +170,7 @@ class GigTestCase(TestCase):
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(
             response.data["results"][0]["user"]["distance_from_user"],
-            "0.01 miles",
+            "0.02 kilometers",
         )
 
 

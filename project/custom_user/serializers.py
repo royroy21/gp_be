@@ -1,4 +1,5 @@
 import random
+from copy import deepcopy
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
@@ -11,6 +12,12 @@ from project.location.fields import LocationField
 from project.location.helpers import get_distance_between_points
 
 User = get_user_model()
+
+
+COUNTRIES_THAT_USE_MILES = [
+    "GB",
+    "US",
+]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -27,7 +34,23 @@ class UserSerializer(serializers.ModelSerializer):
             "location",
             "country",
             "theme",
+            "units",
+            "preferred_units",
         ]
+
+    def get_units(self, country):
+        if country.code in COUNTRIES_THAT_USE_MILES:
+            return User.MILES
+        else:
+            return User.KM
+
+    def update(self, instance, validated_data):
+        copy_of_validated_data = deepcopy(validated_data)
+        if "country" in copy_of_validated_data:
+            copy_of_validated_data["units"] = self.get_units(
+                copy_of_validated_data["country"]
+            )
+        return super().update(instance, copy_of_validated_data)
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
@@ -85,11 +108,12 @@ class UserSerializerMinimum(serializers.ModelSerializer):
         user = self.context["request"].user
         if user.is_authenticated:
             if user.location and obj.location:
+                units = user.preferred_units or user.units
                 distance = get_distance_between_points(
                     point_1=user.location,
                     point_2=obj.location,
-                    units=user.units,
+                    units=units,
                 )
-                return f"{distance} {user.units}"
+                return f"{distance} {units}"
 
         return None
