@@ -37,13 +37,13 @@ class GigSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         genres = self.initial_data.pop("genres", None)
-        if genres:
+        if genres is not None:
             attrs["genres"] = genre_serializers.GenreSerializer(
                 data=genres, many=True
             ).to_internal_value(data=genres)
 
         country = self.initial_data.pop("country", None)
-        if country:
+        if country is not None:
             attrs["country"] = country_serializers.CountrySerializer(
                 data=country
             ).to_internal_value(data=country)
@@ -56,7 +56,8 @@ class GigSerializer(serializers.ModelSerializer):
         copy_of_validated_data["user"] = self.context["request"].user
         genres = copy_of_validated_data.pop("genres", None)
         gig = super().create(copy_of_validated_data)
-        if genres:
+        if genres is not None:
+            gig.genres.clear()
             gig.genres.add(*genres)
         return gig
 

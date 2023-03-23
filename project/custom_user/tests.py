@@ -291,6 +291,40 @@ class UserAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("username", response.data)
 
+    def test_genres_not_getting_wiped_when_not_sending_genres(self):
+        doom = genre_models.Genre.objects.create(genre="Doom")
+        noise = genre_models.Genre.objects.create(genre="Noise")
+        self.user.genres.add(doom, noise)
+        self.assertEqual(self.user.genres.count(), 2)
+
+        data = {"username": "mr_meow"}
+        response = self.drf_client.patch(
+            path=reverse("user-detail", args=(self.user.id,)),
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.genres.count(), 2)
+
+    def test_clearing_genres(self):
+        doom = genre_models.Genre.objects.create(genre="Doom")
+        noise = genre_models.Genre.objects.create(genre="Noise")
+        self.user.genres.add(doom, noise)
+        self.assertEqual(self.user.genres.count(), 2)
+
+        data = {
+            "genres": [],
+        }
+        response = self.drf_client.patch(
+            path=reverse("user-detail", args=(self.user.id,)),
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.genres.count(), 0)
+
 
 class UserSerializerTestCase(TestCase):
     def setUp(self):

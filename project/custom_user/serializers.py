@@ -44,7 +44,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         genres = self.initial_data.pop("genres", None)
-        if genres:
+        if genres is not None:
             attrs["genres"] = genre_serializers.GenreSerializer(
                 data=genres,
                 many=True,
@@ -64,10 +64,11 @@ class UserSerializer(serializers.ModelSerializer):
             copy_of_validated_data["units"] = self.get_units(
                 copy_of_validated_data["country"]
             )
-        genres = copy_of_validated_data.pop("genres", [])
+        genres = copy_of_validated_data.pop("genres", None)
         user = super().update(instance, copy_of_validated_data)
-        user.genres.clear()
-        user.genres.add(*genres)
+        if genres is not None:
+            user.genres.clear()
+            user.genres.add(*genres)
         return user
 
 
