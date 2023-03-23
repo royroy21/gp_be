@@ -9,6 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from project.country import serializers as country_serializers
 from project.genre import serializers as genre_serializers
+from project.gig.search_indexes.update.gig import update_gig_search_indexes
 from project.location.fields import LocationField
 from project.location.helpers import get_distance_between_points
 
@@ -69,6 +70,7 @@ class UserSerializer(serializers.ModelSerializer):
         if genres is not None:
             user.genres.clear()
             user.genres.add(*genres)
+        update_gig_search_indexes(user)
         return user
 
 

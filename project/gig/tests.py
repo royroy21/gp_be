@@ -18,7 +18,6 @@ class GigAPITestCase(TestCase):
     def setUp(self):
         self.user, self.drf_client = core_tests.setup_user_with_drf_client(
             username="fred",
-            password="pa$$word",
         )
         self.genre = genre_models.Genre.objects.create(genre="Doom")
         self.country = country_models.CountryCode.objects.create(
@@ -39,7 +38,7 @@ class GigAPITestCase(TestCase):
         self.user_gig.genres.add(self.genre)
 
         self.other_gig = models.Gig.objects.create(
-            user=core_tests.setup_user(username="jiggy", password="pa$$word"),
+            user=core_tests.setup_user(username="jiggy"),
             title="Man Feelings",
             location="Brixton academy",
             country=self.country,
@@ -64,7 +63,7 @@ class GigAPITestCase(TestCase):
     def test_out_of_date_gig(self):
         # Gigs that have already started should not be displayed
         gig = models.Gig.objects.create(
-            user=core_tests.setup_user(username="bungle", password="pa$$word"),
+            user=core_tests.setup_user(username="bungle"),
             title="Man Feelings",
             location="Brixton academy",
             country=self.country,
@@ -149,7 +148,6 @@ class GigAPITestCase(TestCase):
     def test_patch_gig_if_not_owner(self):
         _, drf_client = core_tests.setup_user_with_drf_client(
             username="bungle",
-            password="pa$$word",
         )
         data = {
             "title": "Secret Man Feelings gig!",
@@ -181,7 +179,6 @@ class GigElasticSearchAPITestCase(TestCase):
     def setUp(self):
         self.user, self.drf_client = core_tests.setup_user_with_drf_client(
             username="fred",
-            password="pa$$word",
         )
         self.genre = genre_models.Genre.objects.create(genre="Doom")
         self.default_country = country_models.CountryCode.objects.create(
@@ -229,9 +226,7 @@ class GigElasticSearchAPITestCase(TestCase):
     def test_search_for_gig_by_username(self):
         # This should hit by providing the exact username
         username = "jiggy"
-        gig = self.create_gig(
-            user=core_tests.setup_user(username=username, password="pa$$word")
-        )
+        gig = self.create_gig(user=core_tests.setup_user(username=username))
         response = self.drf_client.get(
             path=reverse("gig-search-list") + f"?search={username}",
         )
@@ -246,9 +241,7 @@ class GigElasticSearchAPITestCase(TestCase):
     def test_search_for_gig_by_providing_incomplete_username(self):
         # This should not hit as only providing exact usernames should work.
         username = "jiggy"
-        self.create_gig(
-            user=core_tests.setup_user(username=username, password="pa$$word")
-        )
+        self.create_gig(user=core_tests.setup_user(username=username))
         response = self.drf_client.get(
             path=reverse("gig-search-list") + f"?search={username[:3]}",
         )
@@ -256,9 +249,7 @@ class GigElasticSearchAPITestCase(TestCase):
 
     @core_tests.with_elasticsearch
     def test_search_on_title(self):
-        self.create_gig(
-            user=core_tests.setup_user(username="jiggy", password="pa$$word")
-        )
+        self.create_gig(user=core_tests.setup_user(username="jiggy"))
         search_term = "feelings"
         response = self.drf_client.get(
             path=reverse("gig-search-list") + f"?search={search_term}",
@@ -271,9 +262,7 @@ class GigElasticSearchAPITestCase(TestCase):
 
     @core_tests.with_elasticsearch
     def test_search_on_genre(self):
-        self.create_gig(
-            user=core_tests.setup_user(username="jiggy", password="pa$$word")
-        )
+        self.create_gig(user=core_tests.setup_user(username="jiggy"))
         search_term = "doom"
         response = self.drf_client.get(
             path=reverse("gig-search-list") + f"?search={search_term}",
@@ -286,9 +275,7 @@ class GigElasticSearchAPITestCase(TestCase):
 
     @core_tests.with_elasticsearch
     def test_fuzzy_search_on_genre(self):
-        self.create_gig(
-            user=core_tests.setup_user(username="jiggy", password="pa$$word")
-        )
+        self.create_gig(user=core_tests.setup_user(username="jiggy"))
         search_term = "dom"
         response = self.drf_client.get(
             path=reverse("gig-search-list") + f"?search={search_term}",
@@ -303,7 +290,7 @@ class GigElasticSearchAPITestCase(TestCase):
     def test_search_for_out_of_date_gig(self):
         # This should not hit. Only gigs in the future should hit.
         self.create_gig(
-            user=core_tests.setup_user(username="jiggy", password="pa$$word"),
+            user=core_tests.setup_user(username="jiggy"),
             start_date=timezone.now() - timedelta(hours=1),
         )
         response = self.drf_client.get(
@@ -314,7 +301,7 @@ class GigElasticSearchAPITestCase(TestCase):
     @core_tests.with_elasticsearch
     def test_search_on_location(self):
         self.create_gig(
-            user=core_tests.setup_user(username="jiggy", password="pa$$word"),
+            user=core_tests.setup_user(username="jiggy"),
         )
         search_term = "brixton"
         response = self.drf_client.get(
@@ -328,7 +315,7 @@ class GigElasticSearchAPITestCase(TestCase):
 
     @core_tests.with_elasticsearch
     def test_search_on_has_spare_ticket(self):
-        user = core_tests.setup_user(username="jiggy", password="pa$$word")
+        user = core_tests.setup_user(username="jiggy")
         gig = self.create_gig(
             user=user,
             has_spare_ticket=True,
@@ -344,7 +331,7 @@ class GigElasticSearchAPITestCase(TestCase):
 
     @core_tests.with_elasticsearch
     def test_search_on_start_date(self):
-        user = core_tests.setup_user(username="jiggy", password="pa$$word")
+        user = core_tests.setup_user(username="jiggy")
         self.create_gig(
             user=user,
             start_date=timezone.now() + timedelta(days=1),
@@ -369,7 +356,7 @@ class GigElasticSearchAPITestCase(TestCase):
 
     @core_tests.with_elasticsearch
     def test_order_by_start_date(self):
-        user = core_tests.setup_user(username="jiggy", password="pa$$word")
+        user = core_tests.setup_user(username="jiggy")
         gig_second = self.create_gig(
             user=user, start_date=timezone.now() + timedelta(days=5)
         )
@@ -389,10 +376,7 @@ class GigElasticSearchAPITestCase(TestCase):
 
     @core_tests.with_elasticsearch
     def test_filter_by_my_gigs(self):
-        other_user = core_tests.setup_user(
-            username="jiggy",
-            password="pa$$word",
-        )
+        other_user = core_tests.setup_user(username="jiggy")
         self.create_gig(user=other_user)
         my_gig = self.create_gig()
         response = self.drf_client.get(
@@ -400,3 +384,32 @@ class GigElasticSearchAPITestCase(TestCase):
         )
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["id"], my_gig.id)
+
+    @core_tests.with_elasticsearch
+    def test_searching_for_gig_after_user_changes_their_username(self):
+        user = core_tests.setup_user(username="jiggy")
+        self.create_gig(user=user)
+
+        search_term = "feelings"
+        response = self.drf_client.get(
+            path=reverse("gig-search-list") + f"?search={search_term}",
+        )
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertIn(
+            search_term,
+            response.data["results"][0]["title"].lower(),
+        )
+
+        self.drf_client.patch(
+            path=reverse("user-detail", args=(user.id,)),
+            data=json.dumps({"username": "mr_meows"}),
+            content_type="application/json",
+        )
+        response = self.drf_client.get(
+            path=reverse("gig-search-list") + f"?search={search_term}",
+        )
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertIn(
+            search_term,
+            response.data["results"][0]["title"].lower(),
+        )

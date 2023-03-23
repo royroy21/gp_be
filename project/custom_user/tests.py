@@ -19,7 +19,6 @@ class AuthTestCase(TestCase):
     def setUp(self):
         self.user, self.drf_client = setup_user_with_drf_client(
             username="fred",
-            password="pa$$word",
         )
 
     def test_get_user_where_user_is_owner(self):
@@ -40,7 +39,6 @@ class AuthTestCase(TestCase):
         # email should not be present in expected keys
         user, drf_client = setup_user_with_drf_client(
             username="jiggy",
-            password="pa$$word",
         )
         response = drf_client.get(
             path=reverse("user-detail", args=(self.user.id,)),
@@ -76,7 +74,6 @@ class AuthTestCase(TestCase):
         self.assertEqual(self.user.subscribed_to_emails, True)
         user, drf_client = setup_user_with_drf_client(
             username="jiggy",
-            password="pa$$word",
         )
         data = {
             "username": self.user.username,
@@ -138,7 +135,6 @@ class AuthTestCase(TestCase):
     def test_list_users_where_user_is_authenticated(self):
         other_user, _ = setup_user_with_drf_client(
             username="mr_meow",
-            password="pa$$word",
         )
         response = self.drf_client.get(
             path=reverse("user-list"),
@@ -193,7 +189,6 @@ class UserAPITestCase(TestCase):
     def setUp(self):
         self.user, self.drf_client = setup_user_with_drf_client(
             username="fred",
-            password="pa$$word",
         )
 
     def test_update_location(self):
@@ -228,7 +223,6 @@ class UserAPITestCase(TestCase):
 
         other_user, _ = setup_user_with_drf_client(
             username="mr_meow",
-            password="pa$$word",
         )
         other_user.location = Point(-0.0780935, 51.5133267)
         other_user.save()
@@ -247,7 +241,6 @@ class UserAPITestCase(TestCase):
 
         other_user, _ = setup_user_with_drf_client(
             username="mr_meow",
-            password="pa$$word",
         )
         other_user.location = Point(-0.0780935, 51.5133267)
         other_user.save()
@@ -279,7 +272,7 @@ class UserAPITestCase(TestCase):
 
     def test_update_username_that_already_exists(self):
         username = "jiggy"
-        setup_user(username=username, password="pa$$word")
+        setup_user(username=username)
         data = {
             "username": username,
         }
@@ -328,7 +321,7 @@ class UserAPITestCase(TestCase):
 
 class UserSerializerTestCase(TestCase):
     def setUp(self):
-        self.user = setup_user(username="fred", password="pa$$word")
+        self.user = setup_user(username="fred")
 
     def test_update_location(self):
         country = country_models.CountryCode.objects.create(

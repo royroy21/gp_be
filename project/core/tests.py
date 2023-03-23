@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
-def setup_user_with_drf_client(username, password):
+def setup_user_with_drf_client(username, password="pa$$word"):
     user = setup_user(username, password)
     refresh = RefreshToken.for_user(user)
     drf_client = APIClient()
@@ -24,7 +24,7 @@ def setup_user_with_drf_client(username, password):
     return user, drf_client
 
 
-def setup_user(username, password):
+def setup_user(username, password="pa$$word"):
     return User.objects.create_user(
         username,
         f"{username}@example.com",
