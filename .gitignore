@@ -8,7 +8,7 @@ __pycache__
 .idea
 
 # Local custom settings
-settings/local_custom.py
+project/settings/local_custom.py
 
 # Staticfiles
 project/staticfiles/

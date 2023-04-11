@@ -1,3 +1,0 @@
-ALLOWED_HOSTS = [
-    "*",
-]
