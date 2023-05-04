@@ -13,18 +13,43 @@ from project.core.console import print_error_to_console
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
+AUTH_HEADER_NAME = settings.SIMPLE_JWT["AUTH_HEADER_NAME"]  # type: ignore
+AUTH_HEADER_TYPE = settings.SIMPLE_JWT["AUTH_HEADER_TYPES"][0]  # type: ignore
+
 
 def setup_user_with_drf_client(username, password="pa$$word"):
-    user = setup_user(username, password)
+    """
+    Creates a user for testing.
+    Returns User object and authenticated DRF client.
+    """
+    user = create_user(username, password)
     refresh = RefreshToken.for_user(user)
     drf_client = APIClient()
-    drf_client.credentials(
-        HTTP_AUTHORIZATION="JWT " + str(refresh.access_token),
-    )
+    credentials = {
+        AUTH_HEADER_NAME: f"{AUTH_HEADER_TYPE} {str(refresh.access_token)}"
+    }
+    drf_client.credentials(**credentials)
     return user, drf_client
 
 
-def setup_user(username, password="pa$$word"):
+def setup_user_with_jwt_headers(username, password="pa$$word", as_tuple=False):
+    """
+    Creates a user for testing.
+    Returns User object and formatted http authorization header.
+    """
+    user = create_user(username, password)
+    refresh = RefreshToken.for_user(user)
+    token_value = f"{AUTH_HEADER_TYPE} {str(refresh.access_token)}"
+    if as_tuple:
+        auth_header = (AUTH_HEADER_NAME, token_value)
+    else:
+        auth_header = {
+            AUTH_HEADER_NAME: token_value,
+        }
+    return user, auth_header
+
+
+def create_user(username, password="pa$$word"):
     return User.objects.create_user(
         username,
         f"{username}@example.com",

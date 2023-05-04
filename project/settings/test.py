@@ -8,3 +8,10 @@ ELASTICSEARCH_DSL = {
         "hosts": "elasticsearch_test:9200",
     },
 }
+
+# Channels configuration
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}

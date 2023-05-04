@@ -146,3 +146,12 @@ class UserSerializerIfNotOwner(serializers.ModelSerializer):
                 return f"{distance} {units}"
 
         return None
+
+
+class UserSerializerSimple(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "username",
+        )

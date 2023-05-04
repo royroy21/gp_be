@@ -26,7 +26,7 @@ django-elasticsearch-dsl-drf==0.22.5
 django-extensions==3.2.1
 django-filter==22.1
 django-nine==0.2.7
-django-redis-cache==3.0.1
+django-redis==5.2.0
 django-stubs==1.14.0
 django-stubs-ext==0.7.0
 djangorestframework==3.14.0
@@ -40,6 +40,8 @@ flake8==5.0.4
 GDAL==3.0.4
 geographiclib==2.0
 geopy==2.3.0
+gevent==22.10.2
+greenlet==2.0.2
 gunicorn==20.1.0
 hiredis==2.0.0
 hyperlink==21.0.0
@@ -93,7 +95,10 @@ types-PyYAML==6.0.12
 typing-extensions==4.4.0
 urllib3==1.26.14
 wcwidth==0.2.5
+websocket==0.2.1
+websocket-client==1.5.1
 whitenoise==6.2.0
 wrapt==1.14.1
 zipp==3.9.0
+zope.event==4.6
 zope.interface==5.5.0

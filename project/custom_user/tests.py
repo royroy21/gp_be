@@ -7,7 +7,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from project.core.tests import setup_user, setup_user_with_drf_client
+from project.core.tests import create_user, setup_user_with_drf_client
 from project.country import models as country_models
 from project.custom_user import serializers
 from project.genre import models as genre_models
@@ -272,7 +272,7 @@ class UserAPITestCase(TestCase):
 
     def test_update_username_that_already_exists(self):
         username = "jiggy"
-        setup_user(username=username)
+        create_user(username=username)
         data = {
             "username": username,
         }
@@ -321,7 +321,7 @@ class UserAPITestCase(TestCase):
 
 class UserSerializerTestCase(TestCase):
     def setUp(self):
-        self.user = setup_user(username="fred")
+        self.user = create_user(username="fred")
 
     def test_update_location(self):
         country = country_models.CountryCode.objects.create(
