@@ -36,8 +36,12 @@ ALLOWED_HOSTS: List[str]
 LOCAL_APPS = [
     "project.custom_user",
     "project.country",
+    "project.chat",
     "project.genre",
     "project.gig",
+    # HTTP, HTTP2 and WebSocket protocol server.
+    # Takes over from WSGI for development server.
+    "daphne",
 ]
 
 THIRD_PARTY_APPS = [
@@ -94,6 +98,7 @@ TEMPLATES = [
     },
 ]
 
+ASGI_APPLICATION = "core.asgi.application"
 WSGI_APPLICATION = "core.wsgi.application"
 
 
@@ -132,13 +137,16 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, "project/static"),)
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Cache
+# Cache. Using django-redis https://github.com/jazzband/django-redis
 
 CACHES = {
     "default": {
-        "BACKEND": "redis_cache.RedisCache",
-        "LOCATION": "cache:6379",
-    },
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://cache:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
 }
 
 # Channels
@@ -162,7 +170,7 @@ AUTH_USER_MODEL = "custom_user.User"
 
 AUTHENTICATION_BACKENDS = {
     "django.contrib.auth.backends.ModelBackend",
-    "custom_authentication.email_and_password_authentication.EmailBackend",
+    "middleware.email_password.EmailPasswordBackend",
 }
 
 # DRF

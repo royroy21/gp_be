@@ -4,6 +4,7 @@ from django.contrib.gis.geos import Point
 from django.core.validators import EmailValidator
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from rest_framework_simplejwt import tokens
 
 
 class UserManager(auth_models.BaseUserManager):
@@ -146,3 +147,10 @@ class User(  # type: ignore
 
     def __str__(self):
         return f"{self.username} {self.email}"
+
+    def get_jwt(self):
+        refresh = tokens.RefreshToken.for_user(self)
+        return {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }
