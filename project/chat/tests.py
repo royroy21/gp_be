@@ -128,10 +128,38 @@ class ChatTestCase(ChannelsTestCase):
         message_query = await sync_to_async(models.Message.objects.filter)(
             user=self.jiggy,
             room=room,
-            content=message,
+            message=message,
         )
         message_exists = await sync_to_async(message_query.exists)()
         self.assertTrue(message_exists)
+
+    async def test_the_weirdness(self):
+        path = (
+            f"ws/chat/new/?token={self.jiggy_token}"
+            f"&type=direct&to_user_id={self.fred.id}"
+        )
+        new_room_communicator = WebsocketCommunicator(
+            application=application,
+            path=path,
+        )
+        new_room_connected, _ = await new_room_communicator.connect()
+        self.assertTrue(new_room_connected)
+
+        response_room = await new_room_communicator.receive_from()
+        room = json.loads(response_room)["room"]
+
+        message = "hello room!"
+        communicator = WebsocketCommunicator(
+            application=application,
+            path=f"ws/chat/{room}/?token={self.jiggy_token}",
+        )
+        connected, _ = await communicator.connect()
+        self.assertTrue(connected)
+
+        await communicator.send_json_to(data={"message": message})
+        response = await communicator.receive_from()
+        print("waiting for message ..")
+        self.assertEqual(json.loads(response)["message"], message)
 
     async def test_send_message_to_room_that_does_not_exist(self):
         room = "cats"
@@ -196,7 +224,7 @@ class ChatTestCase(ChannelsTestCase):
         message_query = await sync_to_async(models.Message.objects.filter)(
             user=self.jiggy,
             room=room,
-            content=message,
+            message=message,
         )
         message_exists = await sync_to_async(message_query.exists)()
         self.assertTrue(message_exists)
@@ -222,7 +250,7 @@ class ChatTestCase(ChannelsTestCase):
         message_query = await sync_to_async(models.Message.objects.filter)(
             user=self.jiggy,
             room=self.room,
-            content=message,
+            message=message,
         )
         message_exists = await sync_to_async(message_query.exists)()
         self.assertTrue(message_exists)
@@ -266,17 +294,17 @@ class TestMessageViewSet(TestCase):
         )
         self.room.members.add(self.fred, self.jiggy)
         self.messages = [
-            {"user": self.fred, "content": "first_message"},
-            {"user": self.jiggy, "content": "second_message"},
-            {"user": self.fred, "content": "third_message"},
-            {"user": self.jiggy, "content": "forth_message"},
-            {"user": self.fred, "content": "fifth_message"},
+            {"user": self.fred, "message": "first_message"},
+            {"user": self.jiggy, "message": "second_message"},
+            {"user": self.fred, "message": "third_message"},
+            {"user": self.jiggy, "message": "forth_message"},
+            {"user": self.fred, "message": "fifth_message"},
         ]
         for message in self.messages:
             models.Message.objects.create(
                 room=self.room,
                 user=message["user"],
-                content=message["content"],
+                message=message["message"],
             )
 
     def test_getting_messages_when_user_is_not_member_of_room(self):
@@ -284,13 +312,13 @@ class TestMessageViewSet(TestCase):
             username="bungle",
         )
         response = drf_client.get(
-            path=reverse("chat-api-list") + f"?room_id={self.room.id}",
+            path=reverse("message-api-list") + f"?room_id={self.room.id}",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_get_messages_for_room(self):
         response = self.fred_client.get(
-            path=reverse("chat-api-list") + f"?room_id={self.room.id}",
+            path=reverse("message-api-list") + f"?room_id={self.room.id}",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -302,4 +330,4 @@ class TestMessageViewSet(TestCase):
         results = data["results"]
         for n, result in enumerate(results):
             self.assertEqual(result["user"]["id"], self.messages[n]["user"].id)
-            self.assertEqual(result["content"], self.messages[n]["content"])
+            self.assertEqual(result["message"], self.messages[n]["message"])

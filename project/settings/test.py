@@ -1,3 +1,5 @@
+import logging
+
 from .local import *  # noqa
 
 ENV = "test"
@@ -15,3 +17,7 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
+
+# Logging
+# Disable all but critical logs when running tests.
+logging.disable(logging.CRITICAL)

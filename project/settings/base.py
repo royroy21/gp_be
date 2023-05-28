@@ -153,9 +153,10 @@ CACHES = {
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "BACKEND": "channels_redis.pubsub.RedisPubSubChannelLayer",
         "CONFIG": {
             "hosts": [("cache", 6379)],
+            # "hosts": ['redis://' + "cache" + ':' + "6379" + '/2'],
         },
     },
 }

@@ -49,7 +49,7 @@ class Message(BaseModel):
         on_delete=models.CASCADE,
         related_name="messages",
     )
-    content = models.TextField(default="")
+    message = models.TextField(default="")
 
     def __str__(self):
         return f"for room:{self.room.id} {self.user.get_username()}"

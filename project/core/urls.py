@@ -26,7 +26,10 @@ from project.gig import api as gig_api
 
 api_router = DefaultRouter()
 api_router.register(r"user", UserViewSet, basename="user")
-api_router.register(r"chat", chat_api.MessageViewSet, basename="chat-api")
+api_router.register(
+    r"message", chat_api.MessageViewSet, basename="message-api"
+)
+api_router.register(r"room", chat_api.RoomViewSet, basename="room-api")
 api_router.register(r"gig", gig_api.GigViewSet, basename="gig-api")
 
 search_router = DefaultRouter()
