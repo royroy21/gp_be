@@ -10,7 +10,7 @@ class MessageViewSet(mixins.ListModelMixin, GenericViewSet):
     """
 
     queryset = models.Message.objects.filter(active=True).order_by(
-        "-date_created",
+        "date_created",
     )
     serializer_class = serializers.MessageSerializer
 
@@ -27,10 +27,10 @@ class MessageViewSet(mixins.ListModelMixin, GenericViewSet):
             raise exceptions.PermissionDenied
 
         room = room_query.first()
-        # if self.request.user not in room.members.filter(is_active=True):
-        #     raise exceptions.PermissionDenied
+        if self.request.user not in room.members.filter(is_active=True):
+            raise exceptions.PermissionDenied
 
-        return self.queryset.filter(room=room)
+        return self.queryset.filter(room=room).reverse()
 
 
 class RoomViewSet(mixins.ListModelMixin, GenericViewSet):
