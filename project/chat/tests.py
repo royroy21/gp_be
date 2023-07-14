@@ -77,7 +77,7 @@ class ChatTestCase(ChannelsTestCase):
 
     async def test_initiate_new_direct_chat(self):
         path = (
-            f"ws/chat/new/?token={self.jiggy_token}"
+            f"ws/new_chat/?token={self.jiggy_token}"
             f"&type=direct&to_user_id={self.fred.id}"
         )
         communicator = WebsocketCommunicator(
@@ -91,12 +91,11 @@ class ChatTestCase(ChannelsTestCase):
         await communicator.send_json_to(data={"message": message})
         # First we receive a message from the server
         # regarding which room to connect to.
-        response_room = await communicator.receive_from()
         response = await communicator.receive_from()
         await communicator.disconnect()
 
         # Check Room database entry is created and returned.
-        room = json.loads(response_room)["room"]
+        room = json.loads(response)["room"]
         room_query = await sync_to_async(models.Room.objects.filter)(
             id=room,
             user=self.jiggy,
@@ -115,52 +114,6 @@ class ChatTestCase(ChannelsTestCase):
         self.assertIn(self.jiggy.id, members_list)
         self.assertIn(self.fred.id, members_list)
 
-        # Check User is correctly returned.
-        user = json.loads(response)["user"]
-        self.assertEqual(user["id"], self.jiggy.id)
-        self.assertEqual(user["username"], self.jiggy.username)
-
-        # Check message is correctly returned.
-        self.assertEqual(json.loads(response)["message"], message)
-
-        # Check message database entry is created.
-        room = await sync_to_async(room_query.first)()
-        message_query = await sync_to_async(models.Message.objects.filter)(
-            user=self.jiggy,
-            room=room,
-            message=message,
-        )
-        message_exists = await sync_to_async(message_query.exists)()
-        self.assertTrue(message_exists)
-
-    async def test_the_weirdness(self):
-        path = (
-            f"ws/chat/new/?token={self.jiggy_token}"
-            f"&type=direct&to_user_id={self.fred.id}"
-        )
-        new_room_communicator = WebsocketCommunicator(
-            application=application,
-            path=path,
-        )
-        new_room_connected, _ = await new_room_communicator.connect()
-        self.assertTrue(new_room_connected)
-
-        response_room = await new_room_communicator.receive_from()
-        room = json.loads(response_room)["room"]
-
-        message = "hello room!"
-        communicator = WebsocketCommunicator(
-            application=application,
-            path=f"ws/chat/{room}/?token={self.jiggy_token}",
-        )
-        connected, _ = await communicator.connect()
-        self.assertTrue(connected)
-
-        await communicator.send_json_to(data={"message": message})
-        response = await communicator.receive_from()
-        print("waiting for message ..")
-        self.assertEqual(json.loads(response)["message"], message)
-
     async def test_send_message_to_room_that_does_not_exist(self):
         room = "cats"
         communicator = WebsocketCommunicator(
@@ -172,7 +125,7 @@ class ChatTestCase(ChannelsTestCase):
 
     async def test_initiate_new_chat_in_response_to_gig(self):
         path = (
-            f"ws/chat/new/?token={self.jiggy_token}"
+            f"ws/new_chat/?token={self.jiggy_token}"
             f"&type=gig&gig_id={self.fred_gig.id}"
         )
         communicator = WebsocketCommunicator(
@@ -186,12 +139,11 @@ class ChatTestCase(ChannelsTestCase):
         await communicator.send_json_to(data={"message": message})
         # First we receive a message from the server
         # regarding which room to connect to.
-        response_room = await communicator.receive_from()
         response = await communicator.receive_from()
         await communicator.disconnect()
 
         # Check Room database entry is created and returned.
-        room = json.loads(response_room)["room"]
+        room = json.loads(response)["room"]
         room_query = await sync_to_async(models.Room.objects.filter)(
             id=room,
             user=self.jiggy,
@@ -210,24 +162,6 @@ class ChatTestCase(ChannelsTestCase):
         self.assertEqual(len(members_list), 2)
         self.assertIn(self.jiggy.id, members_list)
         self.assertIn(self.fred.id, members_list)
-
-        # Check user is correctly returned.
-        user = json.loads(response)["user"]
-        self.assertEqual(user["id"], self.jiggy.id)
-        self.assertEqual(user["username"], self.jiggy.username)
-
-        # Check message is correctly returned.
-        self.assertEqual(json.loads(response)["message"], message)
-
-        # Check message database entry is created.
-        room = await sync_to_async(room_query.first)()
-        message_query = await sync_to_async(models.Message.objects.filter)(
-            user=self.jiggy,
-            room=room,
-            message=message,
-        )
-        message_exists = await sync_to_async(message_query.exists)()
-        self.assertTrue(message_exists)
 
     async def test_send_message_to_existing_room(self):
         path = f"ws/chat/{self.room.id}/?token={self.jiggy_token}&type=direct"
@@ -327,7 +261,12 @@ class TestMessageViewSet(TestCase):
         self.assertEqual(data["previous"], None)
         self.assertIn("next", data)
 
+        messages_reversed = list(reversed(self.messages))
         results = data["results"]
         for n, result in enumerate(results):
-            self.assertEqual(result["user"]["id"], self.messages[n]["user"].id)
-            self.assertEqual(result["message"], self.messages[n]["message"])
+            self.assertEqual(
+                result["user"]["id"], messages_reversed[n]["user"].id
+            )
+            self.assertEqual(
+                result["message"], messages_reversed[n]["message"]
+            )

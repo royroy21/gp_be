@@ -25,7 +25,8 @@ class NewRoomConsumer(WebsocketConsumer):
         user = self.scope["user"]
         if not user.is_authenticated:
             common.log_error(
-                self.scope, "Disconnecting, user not authenticated",
+                self.scope,
+                "Disconnecting, user not authenticated",
             )
             raise exceptions.DenyConnection
 
@@ -59,17 +60,14 @@ class NewRoomConsumer(WebsocketConsumer):
         _type = query_string.get("type")
         if not _type:
             common.log_error(
-                self.scope, "Disconnecting, no type parameter",
+                self.scope,
+                "Disconnecting, no type parameter",
             )
             raise exceptions.DenyConnection
         if _type[0].upper() == models.DIRECT:
-            return (
-                self.get_or_create_direct_message_room(user, query_string)
-            )
+            return self.get_or_create_direct_message_room(user, query_string)
         if _type[0].upper() == models.GIG:
-            return (
-                self.get_or_create_gig_response_room(user, query_string)
-            )
+            return self.get_or_create_gig_response_room(user, query_string)
         else:
             common.log_error(
                 self.scope,
@@ -85,13 +83,15 @@ class NewRoomConsumer(WebsocketConsumer):
         to_user_id = query_string.get("to_user_id")
         if not to_user_id:
             common.log_error(
-                self.scope, "Disconnecting, no to_user_id parameter",
+                self.scope,
+                "Disconnecting, no to_user_id parameter",
             )
             raise exceptions.DenyConnection
         to_user_query = User.objects.filter(id=to_user_id[0])
         if not to_user_query.exists():
             common.log_error(
-                self.scope, "Disconnecting, to_user_id not found in database",
+                self.scope,
+                "Disconnecting, to_user_id not found in database",
             )
             raise exceptions.DenyConnection
         to_user = to_user_query.first()
@@ -123,13 +123,15 @@ class NewRoomConsumer(WebsocketConsumer):
         gig_id = query_string.get("gig_id")
         if not gig_id:
             common.log_error(
-                self.scope, "Disconnecting, no gig_id parameter",
+                self.scope,
+                "Disconnecting, no gig_id parameter",
             )
             raise exceptions.DenyConnection
         gig_query = gig_models.Gig.objects.filter(id=gig_id[0])
         if not gig_query.exists():
             common.log_error(
-                self.scope, "Disconnecting, gig_id not found in database",
+                self.scope,
+                "Disconnecting, gig_id not found in database",
             )
             raise exceptions.DenyConnection
         gig = gig_query.first()

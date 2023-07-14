@@ -23,7 +23,8 @@ class ExistingRoomConsumer(AsyncWebsocketConsumer):
         user = self.scope["user"]
         if not user.is_authenticated:
             common.log_error(
-                self.scope, "Disconnecting, user not authenticated",
+                self.scope,
+                "Disconnecting, user not authenticated",
             )
             raise exceptions.DenyConnection
 
@@ -42,14 +43,16 @@ class ExistingRoomConsumer(AsyncWebsocketConsumer):
             parsed_room_id = int(room_id)
         except ValueError:
             common.log_error(
-                self.scope, "Disconnecting, could not parse room_id",
+                self.scope,
+                "Disconnecting, could not parse room_id",
             )
             raise exceptions.DenyConnection
 
         room_query = models.Room.objects.filter(id=parsed_room_id)
         if not room_query.exists():
             common.log_error(
-                self.scope, "Disconnecting, room_id not found in database",
+                self.scope,
+                "Disconnecting, room_id not found in database",
             )
             raise exceptions.DenyConnection
 
@@ -57,8 +60,7 @@ class ExistingRoomConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
+            self.room_group_name, self.channel_name
         )
 
     async def receive(self, text_data=None, bytes_data=None):
