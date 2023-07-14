@@ -70,23 +70,25 @@ class ExistingRoomConsumer(AsyncWebsocketConsumer):
             return
 
         user = self.scope["user"]
-        await self.create_message(user, message)
+        message_id = await self.create_message(user, message)
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 "type": "chat_message",
                 "user": common.format_user(user),
+                "message_id": message_id,
                 "message": message,
             },
         )
 
     @database_sync_to_async
     def create_message(self, user, message):
-        models.Message.objects.create(
+        message = models.Message.objects.create(
             user=user,
             room=models.Room.objects.get(id=self.room.id),
             message=message,
         )
+        return message.id
 
     async def chat_message(self, event):
         """
@@ -98,6 +100,7 @@ class ExistingRoomConsumer(AsyncWebsocketConsumer):
                 {
                     "room": self.room.id,
                     "user": event["user"],
+                    "id": event["message_id"],
                     "message": event["message"],
                 }
             )
