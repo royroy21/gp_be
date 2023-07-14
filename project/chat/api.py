@@ -1,3 +1,4 @@
+from django.db.models import Max
 from rest_framework import exceptions, mixins
 from rest_framework.viewsets import GenericViewSet
 
@@ -40,7 +41,8 @@ class RoomViewSet(mixins.ListModelMixin, GenericViewSet):
 
     queryset = (
         models.Room.objects.filter(active=True)
-        .order_by("-date_created")
+        .annotate(last_message_date=Max("messages__date_created"))
+        .order_by("-last_message_date")
         .exclude(messages__isnull=True)
     )
     serializer_class = serializers.RoomSerializer
