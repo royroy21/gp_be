@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from project.chat import models
 from project.custom_user import serializers as user_serializers
+from project.gig import serializers as gig_serializers
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -20,14 +21,19 @@ class RoomSerializer(serializers.ModelSerializer):
     title = serializers.SerializerMethodField()
     timestamp = serializers.SerializerMethodField()
     last_message = serializers.SerializerMethodField()
+    members = serializers.SerializerMethodField()
+    gig = gig_serializers.GigSerializer()
 
     class Meta:
         model = models.Room
         fields = (
             "id",
             "title",
+            "gig",
+            "type",
             "timestamp",
             "last_message",
+            "members",
         )
 
     def get_title(self, room):
@@ -63,3 +69,8 @@ class RoomSerializer(serializers.ModelSerializer):
         if not message:
             return None
         return message.message
+
+    def get_members(self, room):
+        requesting_user = self.context["request"].user
+        query = room.members.exclude(id=requesting_user.id)
+        return user_serializers.UserSerializerSimple(query, many=True).data
