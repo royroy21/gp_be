@@ -16,8 +16,8 @@ class MessageViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = serializers.MessageSerializer
 
     def get_queryset(self):
-        # if not self.request.user.is_authenticated:
-        #     return self.queryset.none()
+        if not self.request.user.is_authenticated:
+            return self.queryset.none()
 
         room_id = self.request.query_params.get("room_id")
         if not room_id:
