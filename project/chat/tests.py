@@ -97,7 +97,7 @@ class ChatTestCase(ChannelsTestCase):
         # Check Room database entry is created and returned.
         room = json.loads(response)["room"]
         room_query = await sync_to_async(models.Room.objects.filter)(
-            id=room,
+            id=room["id"],
             user=self.jiggy,
             type=models.DIRECT,
         )
@@ -145,7 +145,7 @@ class ChatTestCase(ChannelsTestCase):
         # Check Room database entry is created and returned.
         room = json.loads(response)["room"]
         room_query = await sync_to_async(models.Room.objects.filter)(
-            id=room,
+            id=room["id"],
             user=self.jiggy,
             type=models.GIG,
             gig=self.fred_gig,

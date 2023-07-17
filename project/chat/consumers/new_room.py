@@ -7,12 +7,21 @@ from channels import exceptions
 from channels.generic.websocket import WebsocketConsumer
 from django.contrib.auth import get_user_model
 
-from project.chat import models
+from project.chat import models, serializers
 from project.chat.consumers import common
 from project.gig import models as gig_models
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
+
+
+class SudoRequest:
+    """
+    Used for injecting request object into serializer.
+    """
+
+    def __init__(self, user):
+        self.user = user
 
 
 class NewRoomConsumer(WebsocketConsumer):
@@ -167,10 +176,15 @@ class NewRoomConsumer(WebsocketConsumer):
         Receives message from room group.
         Broadcasts message via websocket.
         """
+        request = SudoRequest(user=self.scope["user"])
+        room_serialized = serializers.RoomSerializer(
+            self.room,
+            context={"request": request},
+        )
         self.send(
             text_data=json.dumps(
                 {
-                    "room": self.room.id,
+                    "room": room_serialized.data,
                     "user": event["user"],
                     "message": event["message"],
                 }
