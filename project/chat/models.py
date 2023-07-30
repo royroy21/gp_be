@@ -38,6 +38,11 @@ class Room(BaseModel):
 
 
 class Message(BaseModel):
+    """
+    Note! if PUSH_NOTIFICATIONS_ENABLED is True a push notification is
+    sent to other members of this message's room (not the creating user).
+    This is done through a Django signal.
+    """
 
     user = models.ForeignKey(
         "custom_user.User",

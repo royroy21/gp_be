@@ -1,5 +1,4 @@
 import json
-import logging
 
 from channels import exceptions
 from channels.db import database_sync_to_async
@@ -9,7 +8,6 @@ from django.contrib.auth import get_user_model
 from project.chat import models
 from project.chat.consumers import common
 
-logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
@@ -84,11 +82,11 @@ class ExistingRoomConsumer(AsyncWebsocketConsumer):
         )
 
     @database_sync_to_async
-    def create_message(self, user, message):
+    def create_message(self, user, content):
         message = models.Message.objects.create(
             user=user,
             room=models.Room.objects.get(id=self.room.id),
-            message=message,
+            message=content,
         )
         return message.id
 

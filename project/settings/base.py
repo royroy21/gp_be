@@ -212,3 +212,13 @@ SIMPLE_JWT = {
         "custom_token.serializers.CustomTokenObtainPairSerializer"
     ),
 }
+
+
+# Celery settings
+
+CELERY_BROKER_URL = os.environ["CELERY_BROKER_URL"]
+
+
+# Push notifications
+
+PUSH_NOTIFICATIONS_ENABLED = False

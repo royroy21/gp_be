@@ -6,6 +6,8 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework_simplejwt import tokens
 
+from project.core.models import BaseModel
+
 
 class UserManager(auth_models.BaseUserManager):
     def _create_user(
@@ -154,3 +156,19 @@ class User(  # type: ignore
             "refresh": str(refresh),
             "access": str(refresh.access_token),
         }
+
+
+class NotificationToken(BaseModel):
+    """
+    Token used for using push notifications.
+    """
+
+    user = models.ForeignKey(
+        "custom_user.User",
+        on_delete=models.CASCADE,
+        related_name="notification_tokens",
+    )
+    token = models.CharField(max_length=254)
+
+    def __str__(self):
+        return f"{self.pk} {self.user}"

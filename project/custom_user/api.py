@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from project.core import permissions
-from project.custom_user import serializers
+from project.custom_user import models, serializers
 
 User = get_user_model()
 
@@ -69,8 +69,46 @@ class UserViewSet(viewsets.ModelViewSet):
     def destroy(self, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=["GET"])
     def me(self, request):
         permissions.is_authenticated(request)
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
+
+    @action(url_path="notification-token", detail=True, methods=["POST"])
+    def notification_token(self, request, pk=None):
+        """
+        Mobile apps post their token for use with push notifications here.
+        """
+        permissions.is_authenticated(request)
+        if str(pk) != str(request.user.id):
+            error_message = (
+                f"pk:{pk} does not match requesting userId:{request.user.id}."
+            )
+            return Response(
+                {"error": [error_message]},
+                status=400,
+            )
+        token = request.data.get("token")
+        active = request.data.get("active")
+        if not token or active is None:
+            return Response(
+                {"error": ["Malformed POST data."]},
+                status=400,
+            )
+        query = models.NotificationToken.objects.filter(
+            token=token,
+            user=request.user,
+        )
+        existing_token = query.first()
+        if existing_token:
+            if existing_token.active != active:
+                existing_token.active = active
+                existing_token.save()
+        else:
+            models.NotificationToken.objects.create(
+                token=token,
+                user=request.user,
+                active=active,
+            )
+        return Response({"operation": "success"})

@@ -1,5 +1,4 @@
 import json
-import logging
 from urllib.parse import parse_qs
 
 from asgiref.sync import async_to_sync
@@ -9,19 +8,10 @@ from django.contrib.auth import get_user_model
 
 from project.chat import models, serializers
 from project.chat.consumers import common
+from project.core.requests import SudoRequest
 from project.gig import models as gig_models
 
-logger = logging.getLogger(__name__)
 User = get_user_model()
-
-
-class SudoRequest:
-    """
-    Used for injecting request object into serializer.
-    """
-
-    def __init__(self, user):
-        self.user = user
 
 
 class NewRoomConsumer(WebsocketConsumer):

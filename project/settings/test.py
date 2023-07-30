@@ -21,3 +21,8 @@ CHANNEL_LAYERS = {
 # Logging
 # Disable all but critical logs when running tests.
 logging.disable(logging.CRITICAL)
+
+
+# Push notifications
+
+PUSH_NOTIFICATIONS_ENABLED = False
