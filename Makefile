@@ -84,7 +84,9 @@ migrations:
 	$(MAKE) manage ARGS="makemigrations ${ARGS}"
 
 mypy:
-	@docker-compose run --rm backend mypy --config-file mypy.ini . ${ARGS}
+	# Using --no-incremental to avoid bug https://github.com/typeddjango/django-stubs/issues/760.
+	# This results in mypy not using cache meaning it's pretty slow. Fix later.
+	@docker-compose run --rm backend mypy --no-incremental --config-file mypy.ini . ${ARGS}
 
 PG_DB_HOST=database
 PG_DB_PORT=5432
