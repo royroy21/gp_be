@@ -222,3 +222,9 @@ CELERY_BROKER_URL = os.environ["CELERY_BROKER_URL"]
 # Push notifications
 
 PUSH_NOTIFICATIONS_ENABLED = False
+
+
+# Media
+
+MEDIA_ROOT = os.path.join(BASE_DIR, "project/media")
+MEDIA_URL = "/media/"

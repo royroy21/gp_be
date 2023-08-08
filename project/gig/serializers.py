@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework import serializers
@@ -19,6 +17,7 @@ class GigSerializer(serializers.ModelSerializer):
     user = user_serializers.UserSerializerIfNotOwner(read_only=True)
     genres = genre_serializers.GenreSerializer(many=True, read_only=True)
     country = country_serializers.CountrySerializer(read_only=True)
+    image = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = models.Gig
@@ -33,6 +32,7 @@ class GigSerializer(serializers.ModelSerializer):
             "has_spare_ticket",
             "start_date",
             "end_date",
+            "image",
         )
 
     def validate(self, attrs):
@@ -52,8 +52,7 @@ class GigSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        copy_of_validated_data = deepcopy(validated_data)
-        copy_of_validated_data["user"] = self.context["request"].user
+        copy_of_validated_data = self.copy_data(validated_data)
         genres = copy_of_validated_data.pop("genres", None)
         gig = super().create(copy_of_validated_data)
         if genres is not None:
@@ -63,13 +62,26 @@ class GigSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        copy_of_validated_data = deepcopy(validated_data)
-        copy_of_validated_data["user"] = self.context["request"].user
+        copy_of_validated_data = self.copy_data(validated_data)
         genres = copy_of_validated_data.pop("genres", [])
         gig = super().update(instance, copy_of_validated_data)
         gig.genres.clear()
         gig.genres.add(*genres)
         return gig
+
+    def copy_data(self, data):
+        # Copying like this as deepcopy
+        # doesn't like in memory files.
+        data_copy = {
+            key: value
+            for key, value in data.items()
+            if key != "image"
+        }
+        data_copy.update({
+            "user": self.context["request"].user,
+            "image": data["image"],
+        })
+        return data_copy
 
 
 class GigDocumentSerializer(serializers.Serializer):
@@ -83,6 +95,7 @@ class GigDocumentSerializer(serializers.Serializer):
     has_spare_ticket = serializers.BooleanField(read_only=True)
     start_date = serializers.DateField(read_only=True)
     end_date = serializers.DateField(read_only=True)
+    image = serializers.ImageField(read_only=True)
 
     class Meta:
         document = GigDocument
@@ -97,6 +110,7 @@ class GigDocumentSerializer(serializers.Serializer):
             "has_spare_ticket",
             "start_date",
             "end_date",
+            "image",
         )
 
     def get_user(self, document):

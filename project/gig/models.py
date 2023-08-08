@@ -35,6 +35,11 @@ class Gig(BaseModel):
         blank=True,
         null=True,
     )
+    image = models.ImageField(
+        upload_to="gig",
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return f"{self.title}, {self.user.get_username()}"

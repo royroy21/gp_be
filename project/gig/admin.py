@@ -4,18 +4,20 @@ from project.gig import models
 
 
 class GigAdmin(admin.ModelAdmin):
-    ordering = ("start_date",)
+    ordering = ("-date_created",)
     list_display = (
         "id",
         "user",
         "title",
         "location",
         "has_spare_ticket",
+        "date_created",
         "start_date",
         "active",
     )
     search_fields = (
         "title",
+        "description",
         "location",
         "user__username",
         "user__email",
