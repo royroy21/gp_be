@@ -3,6 +3,7 @@ from django_elasticsearch_dsl import Document, Index, fields
 from django_elasticsearch_dsl_drf.compat import StringField
 
 from project.core.search import anaylizers
+from project.core.search import fields as custom_fields
 from project.gig import models
 
 INDEX = Index(settings.ELASTICSEARCH_INDEX_NAMES[__name__])  # type: ignore
@@ -55,6 +56,7 @@ class GigDocument(Document):
     has_spare_ticket = fields.BooleanField()
     start_date = fields.DateField()
     end_date = fields.DateField()
+    image = custom_fields.ImageField()
 
     class Django:
         model = models.Gig

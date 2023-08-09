@@ -4,6 +4,7 @@ from django_elasticsearch_dsl_drf import constants, filter_backends
 from django_elasticsearch_dsl_drf import viewsets as dsl_drf_viewsets
 from django_elasticsearch_dsl_drf.pagination import PageNumberPagination
 from rest_framework import viewsets
+from rest_framework.response import Response
 
 from project.core import permissions
 from project.gig import models, serializers
@@ -134,6 +135,19 @@ class GigDocumentViewSet(dsl_drf_viewsets.BaseDocumentViewSet):
 
         queryset = queryset.exclude("match", user=self.request.user.username)
         return queryset.filter("range", **{"start_date": {"gte": "now"}})
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(
+                page, many=True, context={"request": request}
+            )
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
         return HttpResponseBadRequest(

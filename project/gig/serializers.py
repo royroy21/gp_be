@@ -73,14 +73,14 @@ class GigSerializer(serializers.ModelSerializer):
         # Copying like this as deepcopy
         # doesn't like in memory files.
         data_copy = {
-            key: value
-            for key, value in data.items()
-            if key != "image"
+            key: value for key, value in data.items() if key != "image"
         }
-        data_copy.update({
-            "user": self.context["request"].user,
-            "image": data["image"],
-        })
+        data_copy.update(
+            {
+                "user": self.context["request"].user,
+                "image": data["image"],
+            }
+        )
         return data_copy
 
 
@@ -95,7 +95,7 @@ class GigDocumentSerializer(serializers.Serializer):
     has_spare_ticket = serializers.BooleanField(read_only=True)
     start_date = serializers.DateField(read_only=True)
     end_date = serializers.DateField(read_only=True)
-    image = serializers.ImageField(read_only=True)
+    image = serializers.SerializerMethodField()
 
     class Meta:
         document = GigDocument
@@ -136,3 +136,9 @@ class GigDocumentSerializer(serializers.Serializer):
             country=document.country,
         )
         return country_serializers.CountrySerializer(country).data
+
+    def get_image(self, document):
+        """Converting here to get full image URL with domain."""
+        if not document.image:
+            return None
+        return self.context["request"].build_absolute_uri(document.image)
