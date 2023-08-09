@@ -70,17 +70,15 @@ class GigSerializer(serializers.ModelSerializer):
         return gig
 
     def copy_data(self, data):
-        # Copying like this as deepcopy
-        # doesn't like in memory files.
+        # Copying like this as deepcopy doesn't like in memory files.
         data_copy = {
             key: value for key, value in data.items() if key != "image"
         }
-        data_copy.update(
-            {
-                "user": self.context["request"].user,
-                "image": data["image"],
-            }
-        )
+        data_copy["user"] = self.context["request"].user
+        if "image" in data.keys():
+            # Adding like this as we need to preserve None for
+            # images as this indicates an image to be removed.
+            data_copy["image"] = data["image"]
         return data_copy
 
 
