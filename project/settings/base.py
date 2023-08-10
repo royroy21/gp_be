@@ -32,7 +32,6 @@ ALLOWED_HOSTS: List[str]
 
 
 # Application definition
-
 LOCAL_APPS = [
     "project.custom_user",
     "project.country",
@@ -69,10 +68,10 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -104,7 +103,6 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -112,21 +110,38 @@ DATABASES = {
     }
 }
 
+# Logging
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "": {
+            "level": "WARNING",
+            "handlers": ["console"],
+        },
+        "project": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    },
+}
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
-
 LANGUAGE_CODE = "en-uk"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
-
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 STATIC_ROOT = os.path.join(BASE_DIR, "project/staticfiles")
 STATIC_URL = "/static/"
@@ -134,11 +149,9 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, "project/static"),)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Cache. Using django-redis https://github.com/jazzband/django-redis
-
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -150,32 +163,27 @@ CACHES = {
 }
 
 # Channels
-
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.pubsub.RedisPubSubChannelLayer",
         "CONFIG": {
             "hosts": [("cache", 6379)],
-            # "hosts": ['redis://' + "cache" + ':' + "6379" + '/2'],
         },
     },
 }
 
 
 # User
-
 AUTH_USER_MODEL = "custom_user.User"
 
 
 # Authentications backend
-
 AUTHENTICATION_BACKENDS = {
     "django.contrib.auth.backends.ModelBackend",
     "middleware.email_password.EmailPasswordBackend",
 }
 
 # DRF
-
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -201,7 +209,6 @@ ELASTICSEARCH_INDEX_NAMES = {
 }
 
 # DRF simple JWT
-
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
@@ -215,16 +222,17 @@ SIMPLE_JWT = {
 
 
 # Celery settings
-
 CELERY_BROKER_URL = os.environ["CELERY_BROKER_URL"]
 
 
 # Push notifications
-
 PUSH_NOTIFICATIONS_ENABLED = False
 
 
-# Media
+# Thumbnails
+CREATE_THUMBNAILS_ENABLED = False
 
+
+# Media
 MEDIA_ROOT = os.path.join(BASE_DIR, "project/media")
 MEDIA_URL = "/media/"

@@ -73,6 +73,7 @@ parso==0.8.3
 pathspec==0.10.1
 pexpect==4.8.0
 pickleshare==0.7.5
+Pillow==10.0.0
 platformdirs==2.5.2
 prompt-toolkit==3.0.39
 psycopg2==2.9.4
@@ -116,4 +117,3 @@ wrapt==1.14.1
 zipp==3.9.0
 zope.event==4.6
 zope.interface==5.5.0
-pillow

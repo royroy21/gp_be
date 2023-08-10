@@ -6,6 +6,9 @@ app.conf.task_routes = {
     "project.custom_user.tasks.send_push_notification": {
         "queue": "push_notifications",
     },
+    "project.gig.tasks.create_gig_thumbnail": {
+        "queue": "thumbnails",
+    },
 }
 app.autodiscover_tasks()
 

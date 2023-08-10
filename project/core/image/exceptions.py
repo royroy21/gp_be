@@ -1,0 +1,2 @@
+class ImageHasNotSavedYetException(Exception):
+    pass

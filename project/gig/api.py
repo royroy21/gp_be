@@ -137,6 +137,10 @@ class GigDocumentViewSet(dsl_drf_viewsets.BaseDocumentViewSet):
         return queryset.filter("range", **{"start_date": {"gte": "now"}})
 
     def list(self, request, *args, **kwargs):
+        """
+        Overriding list here so to pass the request object to
+        the serializer via context.
+        """
         queryset = self.filter_queryset(self.get_queryset())
 
         page = self.paginate_queryset(queryset)
