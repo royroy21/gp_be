@@ -7,7 +7,7 @@ from project.country import serializers as country_serializers
 from project.custom_user import serializers as user_serializers
 from project.genre import models as genre_models
 from project.genre import serializers as genre_serializers
-from project.gig import models
+from project.gig import models, tasks
 from project.gig.search_indexes.documents.gig import GigDocument
 
 User = get_user_model()
@@ -18,6 +18,7 @@ class GigSerializer(serializers.ModelSerializer):
     genres = genre_serializers.GenreSerializer(many=True, read_only=True)
     country = country_serializers.CountrySerializer(read_only=True)
     image = serializers.ImageField(required=False, allow_null=True)
+    thumbnail = serializers.ImageField(read_only=True)
 
     class Meta:
         model = models.Gig
@@ -33,20 +34,23 @@ class GigSerializer(serializers.ModelSerializer):
             "start_date",
             "end_date",
             "image",
+            "thumbnail",
         )
 
     def validate(self, attrs):
-        genres = self.initial_data.pop("genres", None)
-        if genres is not None:
-            attrs["genres"] = genre_serializers.GenreSerializer(
-                data=genres, many=True
-            ).to_internal_value(data=genres)
+        if "genres" in self.initial_data:
+            genres = self.initial_data["genres"]
+            if genres is not None:
+                attrs["genres"] = genre_serializers.GenreSerializer(
+                    data=genres, many=True
+                ).to_internal_value(data=genres)
 
-        country = self.initial_data.pop("country", None)
-        if country is not None:
-            attrs["country"] = country_serializers.CountrySerializer(
-                data=country
-            ).to_internal_value(data=country)
+        if "country" in self.initial_data:
+            country = self.initial_data["country"]
+            if country is not None:
+                attrs["country"] = country_serializers.CountrySerializer(
+                    data=country
+                ).to_internal_value(data=country)
 
         return super().validate(attrs)
 
@@ -56,17 +60,19 @@ class GigSerializer(serializers.ModelSerializer):
         genres = copy_of_validated_data.pop("genres", None)
         gig = super().create(copy_of_validated_data)
         if genres is not None:
-            gig.genres.clear()
             gig.genres.add(*genres)
         return gig
 
     @transaction.atomic
     def update(self, instance, validated_data):
         copy_of_validated_data = self.copy_data(validated_data)
-        genres = copy_of_validated_data.pop("genres", [])
+        genres = copy_of_validated_data.pop("genres", None)
         gig = super().update(instance, copy_of_validated_data)
-        gig.genres.clear()
-        gig.genres.add(*genres)
+        if genres is not None:
+            gig.genres.clear()
+            gig.genres.add(*genres)
+        if "image" in copy_of_validated_data:
+            tasks.create_gig_thumbnail.delay(gig.id)
         return gig
 
     def copy_data(self, data):
@@ -75,10 +81,15 @@ class GigSerializer(serializers.ModelSerializer):
             key: value for key, value in data.items() if key != "image"
         }
         data_copy["user"] = self.context["request"].user
-        if "image" in data.keys():
+        if "image" in data:
             # Adding like this as we need to preserve None for
             # images as this indicates an image to be removed.
             data_copy["image"] = data["image"]
+            # Removing thumbnail here as the
+            # create_thumbnail signal will update it.
+            # Or if image is deleted also delete thumbnail.
+            data_copy["thumbnail"] = None
+
         return data_copy
 
 
@@ -94,6 +105,7 @@ class GigDocumentSerializer(serializers.Serializer):
     start_date = serializers.DateField(read_only=True)
     end_date = serializers.DateField(read_only=True)
     image = serializers.SerializerMethodField()
+    thumbnail = serializers.SerializerMethodField()
 
     class Meta:
         document = GigDocument
@@ -109,6 +121,7 @@ class GigDocumentSerializer(serializers.Serializer):
             "start_date",
             "end_date",
             "image",
+            "thumbnail",
         )
 
     def get_user(self, document):
@@ -140,3 +153,9 @@ class GigDocumentSerializer(serializers.Serializer):
         if not document.image:
             return None
         return self.context["request"].build_absolute_uri(document.image)
+
+    def get_thumbnail(self, document):
+        """Converting here to get full thumbnail URL with domain."""
+        if not document.thumbnail:
+            return None
+        return self.context["request"].build_absolute_uri(document.thumbnail)

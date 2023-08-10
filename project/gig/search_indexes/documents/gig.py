@@ -57,6 +57,7 @@ class GigDocument(Document):
     start_date = fields.DateField()
     end_date = fields.DateField()
     image = custom_fields.ImageField()
+    thumbnail = custom_fields.ThumbnailField()
 
     class Django:
         model = models.Gig
