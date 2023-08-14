@@ -147,9 +147,6 @@ class User(  # type: ignore
         choices=UNIT_CHOICES,
     )
 
-    def __str__(self):
-        return f"{self.username} {self.email}"
-
     def get_jwt(self):
         refresh = tokens.RefreshToken.for_user(self)
         return {
@@ -169,6 +166,3 @@ class NotificationToken(BaseModel):
         related_name="notification_tokens",
     )
     token = models.CharField(max_length=254)
-
-    def __str__(self):
-        return f"{self.pk} {self.user}"

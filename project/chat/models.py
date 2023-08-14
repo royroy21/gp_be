@@ -33,9 +33,6 @@ class Room(BaseModel):
         null=True,
     )
 
-    def __str__(self):
-        return f"{self.type}, {self.user.get_username()}"
-
 
 class Message(BaseModel):
     """
@@ -55,6 +52,3 @@ class Message(BaseModel):
         related_name="messages",
     )
     message = models.TextField(default="")
-
-    def __str__(self):
-        return f"for room:{self.room.id} {self.user.get_username()}"

@@ -46,9 +46,6 @@ class Gig(BaseModel):
         null=True,
     )
 
-    def __str__(self):
-        return f"{self.title}, {self.user.get_username()}"
-
     @property
     def genres_indexing(self):
         """Used in Elasticsearch indexing."""
