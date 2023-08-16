@@ -62,7 +62,8 @@ def resize_image(original_image):
     return image_io
 
 
-def get_resized_image_name(old_image_name):
-    old_name_split = re.split("(\.)", old_image_name)  # noqa
-    old_name_split.insert(-2, f"-{THUMBNAIL_NAME}")
-    return "".join(old_name_split)
+def get_resized_image_name(name):
+    name_removed_directory = "".join(name.split("/")[1:])
+    name_split = re.split("(\.)", name_removed_directory)  # noqa
+    name_split.insert(-2, f"-{THUMBNAIL_NAME}")
+    return "".join(name_split)
