@@ -164,6 +164,11 @@ class User(  # type: ignore
             "access": str(refresh.access_token),
         }
 
+    @property
+    def genres_indexing(self):
+        """Used in Elasticsearch indexing."""
+        return [genre.genre for genre in self.genres.filter(active=True)]
+
 
 class NotificationToken(BaseModel):
     """

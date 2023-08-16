@@ -22,12 +22,12 @@ from rest_framework_simplejwt import views
 
 from project.chat import api as chat_api
 from project.country import api as country_api
-from project.custom_user.api import UserViewSet
+from project.custom_user import api as user_api
 from project.genre import api as genre_api
 from project.gig import api as gig_api
 
 api_router = DefaultRouter()
-api_router.register(r"user", UserViewSet, basename="user")
+api_router.register(r"user", user_api.UserViewSet, basename="user")
 api_router.register(
     r"message", chat_api.MessageViewSet, basename="message-api"
 )
@@ -39,6 +39,11 @@ search_router.register(
     r"gig",
     gig_api.GigDocumentViewSet,
     basename="gig-search",
+)
+search_router.register(
+    r"user",
+    user_api.GigDocumentViewSet,
+    basename="user-search",
 )
 
 urlpatterns = [

@@ -1,7 +1,7 @@
 from django.http import HttpResponseBadRequest
 from django.utils import timezone
 from django_elasticsearch_dsl_drf import constants, filter_backends
-from django_elasticsearch_dsl_drf import viewsets as dsl_drf_viewsets
+from django_elasticsearch_dsl_drf import viewsets as dsl_drf_view_sets
 from django_elasticsearch_dsl_drf.pagination import PageNumberPagination
 from rest_framework import viewsets
 
@@ -62,7 +62,7 @@ class GigViewSet(viewsets.ModelViewSet):
 
 class GigDocumentViewSet(
     core_mixins.ListModelMixinWithSerializerContext,
-    dsl_drf_viewsets.BaseDocumentViewSet,
+    dsl_drf_view_sets.BaseDocumentViewSet,
 ):
     """
     Read only Gig API.
@@ -72,10 +72,10 @@ class GigDocumentViewSet(
     An example URL query could be:
     search/gig/?search=doo
 
-    An example URL query with filtering on start_date and has_spare_ticket:
+    An example URL query using filtering on start_date and has_spare_ticket:
     search/gig/?search=doom&start_date__gt=2023-05-01&has_spare_ticket=true
 
-    An example URL query with order_by
+    An example URL query using order_by
     search/gig/?search=doom&start_date__gt=2023-05-01&order_by_start_date
     """
 

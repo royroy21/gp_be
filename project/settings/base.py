@@ -207,6 +207,7 @@ ELASTICSEARCH_DSL = {
 # Name of the Elasticsearch index
 ELASTICSEARCH_INDEX_NAMES = {
     "project.gig.search_indexes.documents.gig": "gig",
+    "project.custom_user.search_indexes.documents.user": "user",
 }
 
 # DRF simple JWT

@@ -7,7 +7,7 @@ from project.country import serializers as country_serializers
 from project.custom_user import serializers as user_serializers
 from project.genre import models as genre_models
 from project.genre import serializers as genre_serializers
-from project.gig import models, tasks
+from project.gig import models
 from project.gig.search_indexes.documents.gig import GigDocument
 from project.image import tasks as image_tasks
 
@@ -94,7 +94,7 @@ class GigSerializer(serializers.ModelSerializer):
         return data_copy
 
 
-class GigDocumentSerializer(serializers.Serializer):
+class GigDocumentSerializer(serializers.Serializer):  # noqa
     id = serializers.IntegerField(read_only=True)
     user = serializers.SerializerMethodField()
     title = serializers.CharField(read_only=True)
@@ -133,7 +133,16 @@ class GigDocumentSerializer(serializers.Serializer):
             context=self.context,
         ).data
 
-    def get_genres(self, document):
+    def get_country(self, document):  # noqa
+        """Converting here so to match GigSerializer."""
+        country = country_models.CountryCode.objects.filter(
+            country=document.country,
+        ).first()
+        if not country:
+            return None
+        return country_serializers.CountrySerializer(country).data
+
+    def get_genres(self, document):  # noqa
         """Converting here so to match GigSerializer."""
         return [
             genre_serializers.GenreSerializer(
@@ -141,13 +150,6 @@ class GigDocumentSerializer(serializers.Serializer):
             ).data
             for genre in document.genres
         ]
-
-    def get_country(self, document):
-        """Converting here so to match GigSerializer."""
-        country = country_models.CountryCode.objects.get(
-            country=document.country,
-        )
-        return country_serializers.CountrySerializer(country).data
 
     def get_image(self, document):
         """Converting here to get full image URL with domain."""

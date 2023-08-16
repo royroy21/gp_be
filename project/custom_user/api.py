@@ -1,10 +1,16 @@
 from django.contrib.auth import get_user_model
+from django.http import HttpResponseBadRequest
+from django_elasticsearch_dsl_drf import filter_backends
+from django_elasticsearch_dsl_drf import viewsets as dsl_drf_view_sets
+from django_elasticsearch_dsl_drf.pagination import PageNumberPagination
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from project.core import permissions
+from project.core.api import mixins as core_mixins
 from project.custom_user import models, serializers
+from project.custom_user.search_indexes.documents.user import UserDocument
 
 User = get_user_model()
 
@@ -112,3 +118,50 @@ class UserViewSet(viewsets.ModelViewSet):
                 active=active,
             )
         return Response({"operation": "success"})
+
+
+class GigDocumentViewSet(
+    core_mixins.ListModelMixinWithSerializerContext,
+    dsl_drf_view_sets.BaseDocumentViewSet,
+):
+    """
+    Read only User API.
+
+    This API uses elastic search.
+
+    An example URL query could be:
+    search/user/?search=fred
+    """
+
+    document = UserDocument
+    serializer_class = serializers.UserDocumentSerializer
+    pagination_class = PageNumberPagination
+    lookup_field = "id"
+    filter_backends = [
+        filter_backends.FilteringFilterBackend,
+        filter_backends.OrderingFilterBackend,
+        filter_backends.CompoundSearchFilterBackend,
+    ]
+    search_fields = {
+        "username": {"fuzziness": "AUTO"},
+        "country": {"fuzziness": "AUTO"},
+        "bio": {"fuzziness": "AUTO"},
+        "genres": {"fuzziness": "AUTO"},
+    }
+    filter_fields = {
+        "username": "username.raw",
+        "country": "country.raw",
+    }
+    ordering_fields = {
+        "username": "username",
+    }
+    ordering = ("username",)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.exclude("match", user=self.request.user.username)
+
+    def retrieve(self, request, *args, **kwargs):
+        return HttpResponseBadRequest(
+            "The API route should be used for detail views.",
+        )
