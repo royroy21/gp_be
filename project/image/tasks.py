@@ -1,10 +1,10 @@
 import logging
 
 from celery import shared_task
+from django.apps import apps
 from django.conf import settings
 
 from project.core.image import exceptions, thumbnail
-from project.gig import models
 
 logger = logging.getLogger(__name__)
 
@@ -15,25 +15,35 @@ retry = {
 
 
 @shared_task(bind=True, queue="thumbnails")
-def create_gig_thumbnail(self, gig_id):
+def create_thumbnail(self, app_name, model_name, instance_id):
     if not settings.CREATE_THUMBNAILS_ENABLED:
         logger.debug(
-            "Cannot create thumbnail for gig:%s. Setting not enabled.",
-            gig_id,
+            "Failed to create thumbnail for %s.%s id:%s. Setting not enabled.",
+            app_name,
+            model_name,
+            instance_id,
         )
         return
     try:
         # Starting try/except here, so we always try
         # to get the latest version of the instance.
-        gig = models.Gig.objects.filter(id=gig_id).first()
-        if not gig:
-            logger.error("gig with id:%s not found.", gig_id)
+        Model = apps.get_model(app_name, model_name)  # noqa
+        instance = Model.objects.filter(id=instance_id).first()  # noqa
+        if not instance:
+            logger.error(
+                "%s.%s id:%s not found.",
+                app_name,
+                model_name,
+                instance_id,
+            )
             return
         logger.debug(
-            "task received to create thumbnail for gig:%s",
-            gig_id,
+            "task received to create thumbnail for %s.%s id:%s",
+            app_name,
+            model_name,
+            instance_id,
         )
-        thumbnail.create_thumbnail(gig)
+        thumbnail.create_thumbnail(instance)
     except exceptions.ImageHasNotSavedYetException as exc:
         # Probably still waiting for the image
         # to save to the database. Try again.

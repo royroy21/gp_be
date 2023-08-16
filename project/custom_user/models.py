@@ -146,6 +146,16 @@ class User(  # type: ignore
         null=True,
         choices=UNIT_CHOICES,
     )
+    image = models.ImageField(
+        upload_to="user",
+        blank=True,
+        null=True,
+    )
+    thumbnail = models.ImageField(
+        upload_to="user",
+        blank=True,
+        null=True,
+    )
 
     def get_jwt(self):
         refresh = tokens.RefreshToken.for_user(self)

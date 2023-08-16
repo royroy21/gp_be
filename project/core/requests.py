@@ -1,3 +1,6 @@
+from project.site import domain
+
+
 class SudoRequest:
     """
     Used for injecting request object into
@@ -13,3 +16,6 @@ class SudoRequest:
 
     def __init__(self, user):
         self.user = user
+
+    def build_absolute_uri(self, relative_uri):  # noqa
+        return domain.build_absolute_uri(relative_uri)

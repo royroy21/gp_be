@@ -39,6 +39,8 @@ class UserAdmin(BaseUserAdmin):
                         "theme",
                         "units",
                         "preferred_units",
+                        "image",
+                        "thumbnail",
                     )
                 },
             ),
