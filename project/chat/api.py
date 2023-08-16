@@ -3,6 +3,7 @@ from rest_framework import exceptions, mixins
 from rest_framework.viewsets import GenericViewSet
 
 from project.chat import models, serializers
+from project.core.api import mixins as core_mixins
 
 
 class MessageViewSet(mixins.ListModelMixin, GenericViewSet):
@@ -34,7 +35,10 @@ class MessageViewSet(mixins.ListModelMixin, GenericViewSet):
         return self.queryset.filter(room=room).reverse()
 
 
-class RoomViewSet(mixins.ListModelMixin, GenericViewSet):
+class RoomViewSet(
+    core_mixins.ListModelMixinWithSerializerContext,
+    GenericViewSet,
+):
     """
     Returns active Rooms for a user.
     """

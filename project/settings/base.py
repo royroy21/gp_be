@@ -63,6 +63,7 @@ INSTALLED_APPS = (
         "django.contrib.messages",
         "django.contrib.staticfiles",
         "django.contrib.gis",
+        "django.contrib.sites",
     ]
     + THIRD_PARTY_APPS
 )
@@ -79,7 +80,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "core.urls"
+ROOT_URLCONF = "project.core.urls"
 
 TEMPLATES = [
     {
@@ -97,8 +98,8 @@ TEMPLATES = [
     },
 ]
 
-ASGI_APPLICATION = "core.asgi.application"
-WSGI_APPLICATION = "core.wsgi.application"
+ASGI_APPLICATION = "project.core.asgi.application"
+WSGI_APPLICATION = "project.core.wsgi.application"
 
 
 # Database
@@ -236,3 +237,11 @@ CREATE_THUMBNAILS_ENABLED = False
 # Media
 MEDIA_ROOT = os.path.join(BASE_DIR, "project/media")
 MEDIA_URL = "/media/"
+
+
+# Sites.
+# Used for accessing site domain names when request object is not available
+# https://docs.djangoproject.com/en/4.2/ref/contrib/sites/
+SITE_ID = 1  # Corresponds to the ID of the site in the database.
+# TODO - Add another site with the correct domain name for production
+SITE_SCHEME = "http"

@@ -75,7 +75,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    working_dir: /code/project
     command: celery -A project worker -l DEBUG -Q push_notifications,thumbnails
     environment:
       - DEBUG=True

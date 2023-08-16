@@ -7,8 +7,9 @@ from project.country import serializers as country_serializers
 from project.custom_user import serializers as user_serializers
 from project.genre import models as genre_models
 from project.genre import serializers as genre_serializers
-from project.gig import models, tasks
+from project.gig import models
 from project.gig.search_indexes.documents.gig import GigDocument
+from project.image import tasks as image_tasks
 
 User = get_user_model()
 
@@ -72,7 +73,7 @@ class GigSerializer(serializers.ModelSerializer):
             gig.genres.clear()
             gig.genres.add(*genres)
         if "image" in copy_of_validated_data:
-            tasks.create_gig_thumbnail.delay(gig.id)
+            image_tasks.create_thumbnail.delay("gig", "gig", gig.id)
         return gig
 
     def copy_data(self, data):

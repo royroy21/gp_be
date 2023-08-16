@@ -1,5 +1,4 @@
 import random
-from copy import deepcopy
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
@@ -10,8 +9,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from project.country import serializers as country_serializers
 from project.genre import serializers as genre_serializers
 from project.gig.search_indexes.update.gig import update_gig_search_indexes
+from project.image import tasks as image_tasks
 from project.location.fields import LocationField
 from project.location.helpers import get_distance_between_points
+from project.site import domain
 
 User = get_user_model()
 
@@ -26,6 +27,8 @@ class UserSerializer(serializers.ModelSerializer):
     location = LocationField()
     country = country_serializers.CountrySerializer()
     genres = genre_serializers.GenreSerializer(many=True, read_only=True)
+    image = serializers.ImageField(required=False, allow_null=True)
+    thumbnail = serializers.ImageField(read_only=True)
 
     class Meta:
         model = User
@@ -41,37 +44,56 @@ class UserSerializer(serializers.ModelSerializer):
             "theme",
             "units",
             "preferred_units",
+            "image",
+            "thumbnail",
         ]
 
     def validate(self, attrs):
-        genres = self.initial_data.pop("genres", None)
-        if genres is not None:
-            attrs["genres"] = genre_serializers.GenreSerializer(
-                data=genres,
-                many=True,
-            ).to_internal_value(data=genres)
+        if "genres" in self.initial_data:
+            genres = self.initial_data["genres"]
+            if genres is not None:
+                attrs["genres"] = genre_serializers.GenreSerializer(
+                    data=genres, many=True
+                ).to_internal_value(data=genres)
 
         return super().validate(attrs)
 
     def get_units(self, country):
         if country.code in COUNTRIES_THAT_USE_MILES:
-            return User.MILES
+            return User.MILES  # noqa
         else:
-            return User.KM
+            return User.KM  # noqa
 
     def update(self, instance, validated_data):
-        copy_of_validated_data = deepcopy(validated_data)
-        if "country" in copy_of_validated_data:
-            copy_of_validated_data["units"] = self.get_units(
-                copy_of_validated_data["country"]
-            )
+        copy_of_validated_data = self.copy_data(validated_data)
         genres = copy_of_validated_data.pop("genres", None)
         user = super().update(instance, copy_of_validated_data)
         if genres is not None:
             user.genres.clear()
             user.genres.add(*genres)
+        if "image" in copy_of_validated_data:
+            image_tasks.create_thumbnail.delay("custom_user", "user", user.id)
         update_gig_search_indexes(user)
         return user
+
+    def copy_data(self, data):
+        # Copying like this as deepcopy doesn't like in memory files.
+        data_copy = {
+            key: value for key, value in data.items() if key != "image"
+        }
+        if "country" in data_copy:
+            data_copy["units"] = self.get_units(data_copy["country"])
+
+        if "image" in data:
+            # Adding like this as we need to preserve None for
+            # images as this indicates an image to be removed.
+            data_copy["image"] = data["image"]
+            # Removing thumbnail here as the
+            # create_gig_thumbnail task will update it.
+            # Or if image is deleted also delete thumbnail.
+            data_copy["thumbnail"] = None
+
+        return data_copy
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
@@ -114,24 +136,28 @@ class CreateUserSerializer(serializers.ModelSerializer):
         }
 
 
+user_non_sensitive_fields = [
+    field
+    for field in UserSerializer.Meta.fields
+    if field
+    not in [
+        "email",
+        "subscribed_to_emails",
+        "location",
+        "theme",
+        "units",
+        "preferred_units",
+    ]
+]
+
+
 class UserSerializerIfNotOwner(serializers.ModelSerializer):
+    genres = serializers.SerializerMethodField()
     distance_from_user = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["distance_from_user"] + [
-            field
-            for field in UserSerializer.Meta.fields
-            if field
-            not in [
-                "email",
-                "subscribed_to_emails",
-                "location",
-                "theme",
-                "units",
-                "preferred_units",
-            ]
-        ]
+        fields = ["distance_from_user"] + user_non_sensitive_fields
 
     def get_distance_from_user(self, obj):
         user = self.context["request"].user
@@ -147,11 +173,36 @@ class UserSerializerIfNotOwner(serializers.ModelSerializer):
 
         return None
 
+    def get_genres(self, instance):
+        """
+        Genres returned like this,
+        so we can pass the context object.
+        """
+        return genre_serializers.GenreSerializer(
+            instance.genres.filter(active=True),
+            many=True,
+            read_only=True,
+            context=self.context["request"],
+        ).data
 
-class UserSerializerSimple(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = (
-            "id",
-            "username",
-        )
+    def get_image(self, instance):
+        """
+        Created URLs this way as sometimes when called this
+        it doesn't have access to the request object or is
+        using the SudoRequest object which doesn't have access
+        to build_absolute_uri.
+        """
+        if not instance.image:
+            return None
+        return domain.build_absolute_uri(instance.image.url)
+
+    def get_thumbnail(self, instance):
+        """
+        Created URLs this way as sometimes when called this
+        it doesn't have access to the request object or is
+        using the SudoRequest object which doesn't have access
+        to build_absolute_uri.
+        """
+        if not instance.thumbnail:
+            return None
+        return domain.build_absolute_uri(instance.thumbnail.url)
