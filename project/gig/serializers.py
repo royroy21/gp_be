@@ -7,7 +7,7 @@ from project.country import serializers as country_serializers
 from project.custom_user import serializers as user_serializers
 from project.genre import models as genre_models
 from project.genre import serializers as genre_serializers
-from project.gig import models
+from project.gig import models, tasks
 from project.gig.search_indexes.documents.gig import GigDocument
 from project.image import tasks as image_tasks
 
@@ -86,9 +86,9 @@ class GigSerializer(serializers.ModelSerializer):
             # Adding like this as we need to preserve None for
             # images as this indicates an image to be removed.
             data_copy["image"] = data["image"]
-            # Removing thumbnail here as the
-            # create_gig_thumbnail task will update it.
-            # Or if image is deleted also delete thumbnail.
+            # Removing thumbnail here as the create_thumbnail
+            # task will update it. Or if image is deleted also
+            # delete thumbnail.
             data_copy["thumbnail"] = None
 
         return data_copy
