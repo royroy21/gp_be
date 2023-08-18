@@ -88,14 +88,14 @@ class GigDocumentViewSet(
         filter_backends.OrderingFilterBackend,
         filter_backends.CompoundSearchFilterBackend,
     ]
-    search_fields = {
-        "user": {"fuzziness": "AUTO"},
-        "title": {"fuzziness": "AUTO"},
-        "location": {"fuzziness": "AUTO"},
-        "country": {"fuzziness": "AUTO"},
-        "description": {"fuzziness": "AUTO"},
-        "genres": {"fuzziness": "AUTO"},
-    }
+    search_fields = (
+        "user",
+        "title",
+        "location",
+        "country",
+        "description",
+        "genres",
+    )
     filter_fields = {
         "title": "title.raw",
         "location": "location.raw",

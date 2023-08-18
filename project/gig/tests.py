@@ -274,19 +274,6 @@ class GigElasticSearchAPITestCase(TestCase):
         )
 
     @core_tests.with_elasticsearch
-    def test_fuzzy_search_on_genre(self):
-        self.create_gig(user=core_tests.create_user(username="jiggy"))
-        search_term = "dom"
-        response = self.drf_client.get(
-            path=reverse("gig-search-list") + f"?search={search_term}",
-        )
-        self.assertEqual(len(response.data["results"]), 1)
-        self.assertIn(
-            self.genre.genre.lower(),
-            response.data["results"][0]["genres"][0]["genre"].lower(),
-        )
-
-    @core_tests.with_elasticsearch
     def test_search_for_out_of_date_gig(self):
         # This should not hit. Only gigs in the future should hit.
         self.create_gig(
