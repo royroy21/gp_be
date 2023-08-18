@@ -125,6 +125,12 @@ LOGGING = {
             "level": "WARNING",
             "handlers": ["console"],
         },
+        "daphne": {
+            "handlers": [
+                "console",
+            ],
+            "level": "DEBUG",
+        },
         "project": {
             "handlers": ["console"],
             "level": "DEBUG",
