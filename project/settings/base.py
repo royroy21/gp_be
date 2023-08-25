@@ -196,7 +196,7 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PAGINATION_CLASS": (
-        "rest_framework.pagination.PageNumberPagination"
+        "project.core.drf.pagination.DefaultPageNumberPagination"
     ),
     "PAGE_SIZE": 25,
     "SEARCH_PARAM": "search",
