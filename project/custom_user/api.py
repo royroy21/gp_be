@@ -81,20 +81,12 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
-    @action(url_path="notification-token", detail=True, methods=["POST"])
-    def notification_token(self, request, pk=None):
+    @action(url_path="notification-token", detail=False, methods=["POST"])
+    def notification_token(self, request):
         """
         Mobile apps post their token for use with push notifications here.
         """
         permissions.is_authenticated(request)
-        if str(pk) != str(request.user.id):
-            error_message = (
-                f"pk:{pk} does not match requesting userId:{request.user.id}."
-            )
-            return Response(
-                {"error": [error_message]},
-                status=400,
-            )
         token = request.data.get("token")
         active = request.data.get("active")
         if not token or active is None:
