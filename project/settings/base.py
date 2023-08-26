@@ -191,6 +191,7 @@ AUTHENTICATION_BACKENDS = {
 }
 
 # DRF
+PAGE_SIZE = 25
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -198,7 +199,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": (
         "project.core.drf.pagination.DefaultPageNumberPagination"
     ),
-    "PAGE_SIZE": 25,
+    "PAGE_SIZE": PAGE_SIZE,
     "SEARCH_PARAM": "search",
     "ORDERING_PARAM": "order_by",
 }
