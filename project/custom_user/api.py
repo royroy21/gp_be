@@ -120,7 +120,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response({"operation": "success"})
 
 
-class GigDocumentViewSet(
+class UserDocumentViewSet(
     core_mixins.ListModelMixinWithSerializerContext,
     dsl_drf_view_sets.BaseDocumentViewSet,
 ):

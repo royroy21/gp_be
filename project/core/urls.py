@@ -42,7 +42,7 @@ search_router.register(
 )
 search_router.register(
     r"user",
-    user_api.GigDocumentViewSet,
+    user_api.UserDocumentViewSet,
     basename="user-search",
 )
 
