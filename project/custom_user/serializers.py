@@ -157,10 +157,14 @@ user_non_sensitive_fields = [
 class UserSerializerIfNotOwner(serializers.ModelSerializer):
     genres = serializers.SerializerMethodField()
     distance_from_user = serializers.SerializerMethodField()
+    is_favorite = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["distance_from_user"] + user_non_sensitive_fields
+        fields = [
+            "distance_from_user",
+            "is_favorite",
+        ] + user_non_sensitive_fields
 
     def get_distance_from_user(self, obj):
         user = self.context["request"].user
@@ -187,6 +191,13 @@ class UserSerializerIfNotOwner(serializers.ModelSerializer):
             read_only=True,
             context=self.context["request"],
         ).data
+
+    def get_is_favorite(self, instance):
+        return (
+            self.context["request"]
+            .user.favorite_users.filter(id=instance.id)
+            .exists()
+        )
 
     def get_image(self, instance):
         """
@@ -219,10 +230,11 @@ class UserDocumentSerializer(serializers.Serializer):  # noqa
     genres = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
     thumbnail = serializers.SerializerMethodField()
+    is_favorite = serializers.SerializerMethodField()
 
     class Meta:
         document = UserDocument
-        fields = user_non_sensitive_fields
+        fields = ["is_favorite"] + user_non_sensitive_fields
 
     def get_country(self, document):  # noqa
         """Converting here so to match user serializers."""
@@ -241,6 +253,13 @@ class UserDocumentSerializer(serializers.Serializer):  # noqa
             ).data
             for genre in document.genres
         ]
+
+    def get_is_favorite(self, instance):
+        return (
+            self.context["request"]
+            .user.favorite_users.filter(id=instance.id)
+            .exists()
+        )
 
     def get_image(self, document):
         """Converting here to get full image URL with domain."""

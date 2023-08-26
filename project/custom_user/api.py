@@ -111,6 +111,39 @@ class UserViewSet(viewsets.ModelViewSet):
             )
         return Response({"operation": "success"})
 
+    @action(url_path="add-favorite-user", detail=False, methods=["POST"])
+    def add_favorite_user(self, request):
+        user = self.get_favorite_user(request)
+        request.user.favorite_users.add(user)
+        request.user.save()
+        return Response({"operation": "success"})
+
+    @action(url_path="remove-favorite-user", detail=False, methods=["POST"])
+    def remove_favorite_user(self, request):
+        user = self.get_favorite_user(request)
+        request.user.favorite_users.remove(user)
+        request.user.save()
+        return Response({"operation": "success"})
+
+    def get_favorite_user(self, request):
+        """
+        Performs checks and returns user for favorite user operations.
+        """
+        permissions.is_authenticated(request)
+        user_id = request.data.get("id")
+        if not user_id:
+            return Response(
+                {"error": ["Malformed POST data."]},
+                status=400,
+            )
+        user = models.User.objects.filter(id=user_id).first()
+        if not user:
+            return Response(
+                {"error": ["User not found."]},
+                status=400,
+            )
+        return user
+
 
 class UserDocumentViewSet(
     core_mixins.ListModelMixinWithSerializerContext,

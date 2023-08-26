@@ -107,6 +107,7 @@ class User(  # type: ignore
         null=True,
         related_name="users",
     )
+    favorite_users = models.ManyToManyField("User")
 
     # Personal
     bio = models.TextField(default="", blank=True)
