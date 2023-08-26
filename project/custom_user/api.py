@@ -3,6 +3,7 @@ from django.http import HttpResponseBadRequest
 from django_elasticsearch_dsl_drf import filter_backends
 from django_elasticsearch_dsl_drf import viewsets as dsl_drf_view_sets
 from django_elasticsearch_dsl_drf.pagination import PageNumberPagination
+from elasticsearch_dsl import Q
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -125,7 +126,7 @@ class UserViewSet(viewsets.ModelViewSet):
         request.user.save()
         return Response({"operation": "success"})
 
-    def get_favorite_user(self, request):
+    def get_favorite_user(self, request):  # noqa
         """
         Performs checks and returns user for favorite user operations.
         """
@@ -183,8 +184,25 @@ class UserDocumentViewSet(
     ordering = ("username",)
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset.exclude("match", user=self.request.user.username)
+        queryset = (
+            super()
+            .get_queryset()
+            .exclude("match", user=self.request.user.username)
+        )
+
+        # As `is_favorite` is a computed field determined at the time
+        # of the API call we get favorite users from the requesting
+        # user then perform a fresh elastic search query here.
+        if self.request.query_params.get("is_favorite"):  # noqa
+            favorite_users_ids = (
+                self.request.user.favorite_users.filter(  # noqa
+                    is_active=True,
+                ).values_list("id", flat=True)
+            )
+            favorite_users_query = Q("terms", id=list(favorite_users_ids))
+            return queryset.query(favorite_users_query)
+
+        return queryset
 
     def retrieve(self, request, *args, **kwargs):
         return HttpResponseBadRequest(
