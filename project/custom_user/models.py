@@ -108,6 +108,10 @@ class User(  # type: ignore
         related_name="users",
     )
     favorite_users = models.ManyToManyField("User")
+    favorite_gigs = models.ManyToManyField(
+        "gig.Gig",
+        related_name="favourite_for_users",
+    )
 
     # Personal
     bio = models.TextField(default="", blank=True)

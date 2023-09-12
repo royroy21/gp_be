@@ -3,6 +3,7 @@ from django.utils import timezone
 from django_elasticsearch_dsl_drf import constants, filter_backends
 from django_elasticsearch_dsl_drf import viewsets as dsl_drf_view_sets
 from django_elasticsearch_dsl_drf.pagination import PageNumberPagination
+from elasticsearch_dsl import Q
 from rest_framework import viewsets
 
 from project.core import permissions
@@ -130,6 +131,16 @@ class GigDocumentViewSet(
         queryset = super().get_queryset()
         if not self.request.user.is_authenticated:
             return queryset.filter("range", **{"start_date": {"gte": "now"}})
+
+        # As `is_favorite` is a computed field determined at the time
+        # of the API call we get favorite gigs from the requesting
+        # user then perform a fresh elastic search query here.
+        if self.request.query_params.get("is_favorite"):  # noqa
+            favorite_gigs_ids = self.request.user.favorite_gigs.filter(  # noqa
+                active=True,
+            ).values_list("id", flat=True)
+            favorite_gigs_query = Q("terms", id=list(favorite_gigs_ids))
+            return queryset.query(favorite_gigs_query)
 
         my_gigs = self.request.query_params.get("my_gigs")
         if my_gigs:

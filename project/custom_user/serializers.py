@@ -254,10 +254,10 @@ class UserDocumentSerializer(serializers.Serializer):  # noqa
             for genre in document.genres
         ]
 
-    def get_is_favorite(self, instance):
+    def get_is_favorite(self, document):
         return (
             self.context["request"]
-            .user.favorite_users.filter(id=instance.id)
+            .user.favorite_users.filter(id=document.id)
             .exists()
         )
 

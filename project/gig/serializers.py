@@ -20,6 +20,7 @@ class GigSerializer(serializers.ModelSerializer):
     country = country_serializers.CountrySerializer(read_only=True)
     image = serializers.ImageField(required=False, allow_null=True)
     thumbnail = serializers.ImageField(read_only=True)
+    is_favorite = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Gig
@@ -36,6 +37,7 @@ class GigSerializer(serializers.ModelSerializer):
             "end_date",
             "image",
             "thumbnail",
+            "is_favorite",
         )
 
     def validate(self, attrs):
@@ -93,6 +95,13 @@ class GigSerializer(serializers.ModelSerializer):
 
         return data_copy
 
+    def get_is_favorite(self, instance):
+        return (
+            self.context["request"]
+            .user.favorite_gigs.filter(id=instance.id)
+            .exists()
+        )
+
 
 class GigDocumentSerializer(serializers.Serializer):  # noqa
     id = serializers.IntegerField(read_only=True)
@@ -107,6 +116,7 @@ class GigDocumentSerializer(serializers.Serializer):  # noqa
     end_date = serializers.DateField(read_only=True)
     image = serializers.SerializerMethodField()
     thumbnail = serializers.SerializerMethodField()
+    is_favorite = serializers.SerializerMethodField()
 
     class Meta:
         document = GigDocument
@@ -123,6 +133,7 @@ class GigDocumentSerializer(serializers.Serializer):  # noqa
             "end_date",
             "image",
             "thumbnail",
+            "is_favorite",
         )
 
     def get_user(self, document):
@@ -162,3 +173,10 @@ class GigDocumentSerializer(serializers.Serializer):  # noqa
         if not document.thumbnail:
             return None
         return self.context["request"].build_absolute_uri(document.thumbnail)
+
+    def get_is_favorite(self, document):
+        return (
+            self.context["request"]
+            .user.favorite_gigs.filter(id=document.id)
+            .exists()
+        )

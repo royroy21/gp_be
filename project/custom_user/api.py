@@ -12,6 +12,7 @@ from project.core import permissions
 from project.core.api import mixins as core_mixins
 from project.custom_user import models, serializers
 from project.custom_user.search_indexes.documents.user import UserDocument
+from project.gig import models as gig_models
 
 User = get_user_model()
 
@@ -144,6 +145,39 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=400,
             )
         return user
+
+    @action(url_path="add-favorite-gig", detail=False, methods=["POST"])
+    def add_favorite_gig(self, request):
+        gig = self.get_favorite_gig(request)
+        request.user.favorite_gigs.add(gig)
+        request.user.save()
+        return Response({"operation": "success"})
+
+    @action(url_path="remove-favorite-gig", detail=False, methods=["POST"])
+    def remove_favorite_gig(self, request):
+        gig = self.get_favorite_gig(request)
+        request.user.favorite_gigs.remove(gig)
+        request.user.save()
+        return Response({"operation": "success"})
+
+    def get_favorite_gig(self, request):  # noqa
+        """
+        Performs checks and returns gig for favorite gig operations.
+        """
+        permissions.is_authenticated(request)
+        gig_id = request.data.get("id")
+        if not gig_id:
+            return Response(
+                {"error": ["Malformed POST data."]},
+                status=400,
+            )
+        gig = gig_models.Gig.objects.filter(id=gig_id).first()
+        if not gig:
+            return Response(
+                {"error": ["Gig not found."]},
+                status=400,
+            )
+        return gig
 
 
 class UserDocumentViewSet(
