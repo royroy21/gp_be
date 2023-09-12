@@ -158,6 +158,7 @@ class UserSerializerIfNotOwner(serializers.ModelSerializer):
     genres = serializers.SerializerMethodField()
     distance_from_user = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
+    country = country_serializers.CountrySerializer()
 
     class Meta:
         model = User
