@@ -256,7 +256,7 @@ country_codes = [
     {"country": "Uganda", "code": "UG", "rank": 2},
     {"country": "Ukraine", "code": "UA", "rank": 1},
     {"country": "United Arab Emirates (the)", "code": "AE", "rank": 2},
-    {"country": "United Kingdom", "code": "GB", "rank": 1},
+    {"country": "United Kingdom", "code": "UK", "rank": 1},
     {
         "country": "United States Minor Outlying Islands (the)",
         "code": "UM",
