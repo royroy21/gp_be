@@ -21,6 +21,7 @@ class GigSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(required=False, allow_null=True)
     thumbnail = serializers.ImageField(read_only=True)
     is_favorite = serializers.SerializerMethodField()
+    replies = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Gig
@@ -38,6 +39,7 @@ class GigSerializer(serializers.ModelSerializer):
             "image",
             "thumbnail",
             "is_favorite",
+            "replies",
         )
 
     def validate(self, attrs):
@@ -102,6 +104,9 @@ class GigSerializer(serializers.ModelSerializer):
             .exists()
         )
 
+    def get_replies(self, instance):
+        return instance.replies()
+
 
 class GigDocumentSerializer(serializers.Serializer):  # noqa
     id = serializers.IntegerField(read_only=True)
@@ -117,6 +122,7 @@ class GigDocumentSerializer(serializers.Serializer):  # noqa
     image = serializers.SerializerMethodField()
     thumbnail = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
+    replies = serializers.SerializerMethodField()
 
     class Meta:
         document = GigDocument
@@ -134,6 +140,7 @@ class GigDocumentSerializer(serializers.Serializer):  # noqa
             "image",
             "thumbnail",
             "is_favorite",
+            "replies",
         )
 
     def get_user(self, document):
@@ -180,3 +187,6 @@ class GigDocumentSerializer(serializers.Serializer):  # noqa
             .user.favorite_gigs.filter(id=document.id)
             .exists()
         )
+
+    def get_replies(self, document):
+        return document.replies

@@ -169,7 +169,6 @@ class User(  # type: ignore
             "access": str(refresh.access_token),
         }
 
-    @property
     def genres_indexing(self):
         """Used in Elasticsearch indexing."""
         # Must be a list as elastic search cannot serialize a queryset.

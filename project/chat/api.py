@@ -60,7 +60,14 @@ class RoomViewSet(
         if not self.request.user.is_authenticated:
             return self.queryset.none()
 
-        return self.queryset.filter(members=self.request.user)
+        queryset = self.queryset.filter(members=self.request.user)
+
+        gig_id = self.request.query_params.get("gig_id")
+        if gig_id:
+            # Return rooms for a gig
+            return queryset.filter(gig__id=gig_id)
+
+        return queryset
 
 
 class RoomDocumentViewSet(

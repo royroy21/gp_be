@@ -46,10 +46,22 @@ class Gig(BaseModel):
         null=True,
     )
 
-    @property
     def genres_indexing(self):
         """Used in Elasticsearch indexing."""
         # Must be a list as elastic search cannot serialize a queryset.
         return list(
             self.genres.filter(active=True).values_list("genre", flat=True)
+        )
+
+    def replies(self):
+        """
+        Replies count for this gig.
+        Calculated by counting rooms.
+
+        This field is used in Elasticsearch indexing.
+        """
+        return (
+            self.rooms.filter(active=True)  # noqa
+            .exclude(messages__isnull=True)
+            .count()
         )
