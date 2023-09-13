@@ -36,6 +36,11 @@ api_router.register(r"gig", gig_api.GigViewSet, basename="gig-api")
 
 search_router = DefaultRouter()
 search_router.register(
+    r"room",
+    chat_api.RoomDocumentViewSet,
+    basename="room-search",
+)
+search_router.register(
     r"gig",
     gig_api.GigDocumentViewSet,
     basename="gig-search",

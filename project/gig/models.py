@@ -49,4 +49,7 @@ class Gig(BaseModel):
     @property
     def genres_indexing(self):
         """Used in Elasticsearch indexing."""
-        return [genre.genre for genre in self.genres.filter(active=True)]
+        # Must be a list as elastic search cannot serialize a queryset.
+        return list(
+            self.genres.filter(active=True).values_list("genre", flat=True)
+        )

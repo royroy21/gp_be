@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from project.chat import models
+from project.chat.search_indexes.documents.room import RoomDocument
 from project.custom_user import serializers as user_serializers
 from project.gig import serializers as gig_serializers
 from project.site import domain
@@ -139,3 +140,69 @@ class RoomSerializer(serializers.ModelSerializer):
                     else None
                 )
         return None
+
+
+class RoomDocumentSerializer(serializers.Serializer):  # noqa
+    id = serializers.IntegerField(read_only=True)
+    title = serializers.SerializerMethodField()
+    timestamp = serializers.SerializerMethodField()
+    last_message = serializers.SerializerMethodField()
+    members = serializers.SerializerMethodField()
+    gig = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
+    thumbnail = serializers.SerializerMethodField()
+
+    def __init__(self, *args, **kwargs):
+        # Saving all objects here in dictionary,
+        # so we don't keep querying the database
+        # for room objects.
+        self.objects = {
+            document["id"]: models.Room.objects.get(id=document["id"])
+            for document in args[0]
+        }
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        document = RoomDocument
+        fields = (
+            "id",
+            "title",
+            "timestamp",
+            "last_message",
+            "members",
+            "gig",
+            "image",
+            "thumbnail",
+        )
+
+    def get_standard_serializer(self, document):
+        """
+        This returns an initiated RoomSerializer.
+        This is used so this serializer returns
+        data in the same format as RoomSerializer.
+        """
+        return RoomSerializer(
+            self.objects[document["id"]],
+            context={"request": self.context["request"]},
+        )
+
+    def get_title(self, document):
+        return self.get_standard_serializer(document).data["title"]
+
+    def get_timestamp(self, document):
+        return self.get_standard_serializer(document).data["timestamp"]
+
+    def get_last_message(self, document):
+        return self.get_standard_serializer(document).data["last_message"]
+
+    def get_members(self, document):
+        return self.get_standard_serializer(document).data["members"]
+
+    def get_gig(self, document):
+        return self.get_standard_serializer(document).data["gig"]
+
+    def get_image(self, document):
+        return self.get_standard_serializer(document).data["image"]
+
+    def get_thumbnail(self, document):
+        return self.get_standard_serializer(document).data["thumbnail"]

@@ -33,6 +33,48 @@ class Room(BaseModel):
         null=True,
     )
 
+    def members_indexing(self):
+        """Used in Elasticsearch indexing."""
+        return list(
+            self.members.filter(is_active=True).values_list(
+                "username",
+                flat=True,
+            )
+        )
+
+    def gig_indexing(self):
+        """Used in Elasticsearch indexing."""
+        if not self.gig:
+            return None
+
+        genres = " ".join(
+            list(
+                self.gig.genres.filter(active=True).values_list(  # noqa
+                    "genre",
+                    flat=True,
+                )
+            )
+        )
+        # Putting all gig data into a string for search purposes.
+        return (
+            f"{self.gig.title} "  # noqa
+            f"{self.gig.description} "  # noqa
+            f"{self.gig.location} {genres}"  # noqa
+        )
+
+    def last_message_date_indexing(self):
+        """Used in Elasticsearch indexing."""
+        if not self.messages.exists():  # noqa
+            return None
+
+        return (
+            self.messages.all().order_by("date_created").last().date_created
+        )  # noqa
+
+    def has_messages_indexing(self):
+        """Used in Elasticsearch indexing."""
+        return self.messages.exists()  # noqa
+
 
 class Message(BaseModel):
     """

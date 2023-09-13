@@ -3,12 +3,15 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from project.chat import models, serializers
+from project.chat.search_indexes.update.room import update_room_search_index
 from project.core.requests import SudoRequest
 from project.custom_user import tasks as user_tasks
 
 
 @receiver(post_save, sender=models.Message)
 def create_chat_message(sender, instance, created, **kwargs):
+    update_room_search_index(instance.room)
+
     if not created or not settings.PUSH_NOTIFICATIONS_ENABLED:
         return
 
