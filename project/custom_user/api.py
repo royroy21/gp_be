@@ -218,11 +218,15 @@ class UserDocumentViewSet(
     ordering = ("username",)
 
     def get_queryset(self):
-        queryset = (
-            super()
-            .get_queryset()
-            .exclude("match", user=self.request.user.username)
-        )
+        wildcard_query = self.request.query_params.get("search_using_wildcard")
+        if wildcard_query:
+            queryset = self.get_queryset_using_wildcard(wildcard_query)
+        else:
+            queryset = (
+                super()
+                .get_queryset()
+                .exclude("match", username=self.request.user.username)
+            )
 
         # As `is_favorite` is a computed field determined at the time
         # of the API call we get favorite users from the requesting
@@ -236,6 +240,18 @@ class UserDocumentViewSet(
             favorite_users_query = Q("terms", id=list(favorite_users_ids))
             return queryset.query(favorite_users_query)
 
+        return queryset
+
+    def get_queryset_using_wildcard(self, search_query):
+        """
+        Doing this as django_elasticsearch_dsl_drf
+        doesn't seem to like wildcards :/
+
+        Using wildcard on username field only.
+        """
+        wildcard_query = Q("wildcard", username=search_query)
+        queryset = UserDocument.search().query(wildcard_query)
+        queryset.exclude(username=self.request.user.username)
         return queryset
 
     def retrieve(self, request, *args, **kwargs):
