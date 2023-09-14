@@ -8,6 +8,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from project.chat import models, serializers
 from project.chat.search_indexes.documents.room import RoomDocument
+from project.core import permissions
 from project.core.api import mixins as core_mixins
 
 
@@ -42,6 +43,7 @@ class MessageViewSet(mixins.ListModelMixin, GenericViewSet):
 
 class RoomViewSet(
     core_mixins.ListModelMixinWithSerializerContext,
+    mixins.UpdateModelMixin,
     GenericViewSet,
 ):
     """
@@ -62,12 +64,17 @@ class RoomViewSet(
 
         queryset = self.queryset.filter(members=self.request.user)
 
-        gig_id = self.request.query_params.get("gig_id")
+        gig_id = self.request.query_params.get("gig_id")  # noqa
         if gig_id:
             # Return rooms for a gig
             return queryset.filter(gig__id=gig_id)
 
         return queryset
+
+    def update(self, request, *args, **kwargs):
+        permissions.is_owner(request, self.get_object())
+        kwargs["partial"] = True
+        return super().update(request, *args, **kwargs)
 
 
 class RoomDocumentViewSet(

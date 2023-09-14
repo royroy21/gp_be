@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 
 from project.chat import models
@@ -27,6 +28,7 @@ class RoomSerializer(serializers.ModelSerializer):
     gig = gig_serializers.GigSerializer()
     image = serializers.SerializerMethodField()
     thumbnail = serializers.SerializerMethodField()
+    user = user_serializers.UserSerializerIfNotOwner(read_only=True)
 
     class Meta:
         model = models.Room
@@ -40,6 +42,7 @@ class RoomSerializer(serializers.ModelSerializer):
             "members",
             "image",
             "thumbnail",
+            "user",
         )
 
     def get_title(self, room):
@@ -141,6 +144,27 @@ class RoomSerializer(serializers.ModelSerializer):
                 )
         return None
 
+    def validate(self, data):
+        members = self.initial_data.get("members")
+        if members:
+            # TODO - fix this dodgy code. Hacky I know. It's late :(
+            # No validation here. Use a stripped down user serializer.
+            data["members"] = [member["id"] for member in members]
+
+        return data
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        """
+        Currently can only update membership.
+        """
+        members = validated_data.get("members")
+        if members:
+            instance.members.clear()
+            instance.members.add(self.context["request"].user, *members)
+
+        return instance
+
 
 class RoomDocumentSerializer(serializers.Serializer):  # noqa
     id = serializers.IntegerField(read_only=True)
@@ -151,6 +175,7 @@ class RoomDocumentSerializer(serializers.Serializer):  # noqa
     gig = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
     thumbnail = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         # Saving all objects here in dictionary,
@@ -173,6 +198,7 @@ class RoomDocumentSerializer(serializers.Serializer):  # noqa
             "gig",
             "image",
             "thumbnail",
+            "user",
         )
 
     def get_standard_serializer(self, document):
@@ -206,3 +232,6 @@ class RoomDocumentSerializer(serializers.Serializer):  # noqa
 
     def get_thumbnail(self, document):
         return self.get_standard_serializer(document).data["thumbnail"]
+
+    def get_user(self, document):
+        return self.get_standard_serializer(document).data["user"]
