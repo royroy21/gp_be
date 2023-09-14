@@ -65,3 +65,10 @@ class Gig(BaseModel):
             .exclude(messages__isnull=True)
             .count()
         )
+
+    def has_replies(self):
+        return (
+            self.rooms.filter(active=True)  # noqa
+            .exclude(messages__isnull=True)
+            .exists()
+        )

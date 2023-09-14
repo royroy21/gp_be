@@ -46,8 +46,9 @@ class GigViewSet(viewsets.ModelViewSet):
 
         my_gigs = self.request.query_params.get("my_gigs")
         if my_gigs:
-            # Return all gigs even those out of date.
-            return self.queryset.filter(user=self.request.user)
+            return self.queryset.filter(user=self.request.user).exclude(
+                start_date__lte=timezone.now(),
+            )
 
         # User should be able to get any gig if lookup_field (pk) is provided.
         if (
@@ -106,6 +107,12 @@ class GigDocumentViewSet(
                 constants.TRUE_VALUES,
             ],
         },
+        "has_replies": {
+            "field": "has_replies",
+            "lookups": [
+                constants.TRUE_VALUES,
+            ],
+        },
         "start_date": {
             "field": "start_date",
             "lookups": [
@@ -140,15 +147,27 @@ class GigDocumentViewSet(
                 active=True,
             ).values_list("id", flat=True)
             favorite_gigs_query = Q("terms", id=list(favorite_gigs_ids))
-            return queryset.query(favorite_gigs_query)
+            return queryset.query(favorite_gigs_query).sort("start_date")
 
         my_gigs = self.request.query_params.get("my_gigs")
         if my_gigs:
-            # Return all gigs even those out of date.
-            return queryset.filter("match", user=self.request.user.username)
+            past_gigs = self.request.query_params.get("past_gigs")
+            queryset = queryset.filter(
+                "match",
+                user=self.request.user.username,
+            )
+            if past_gigs:
+                return queryset.sort("start_date")
+            else:
+                return queryset.filter(
+                    "range",
+                    **{"start_date": {"gte": "now"}},
+                ).sort("start_date")
 
         queryset = queryset.exclude("match", user=self.request.user.username)
-        return queryset.filter("range", **{"start_date": {"gte": "now"}})
+        return queryset.filter("range", **{"start_date": {"gte": "now"}}).sort(
+            "start_date"
+        )
 
     def retrieve(self, request, *args, **kwargs):
         return HttpResponseBadRequest(
