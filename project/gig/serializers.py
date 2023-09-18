@@ -98,11 +98,10 @@ class GigSerializer(serializers.ModelSerializer):
         return data_copy
 
     def get_is_favorite(self, instance):
-        return (
-            self.context["request"]
-            .user.favorite_gigs.filter(id=instance.id)
-            .exists()
-        )
+        user = self.context["request"].user
+        if not user.is_authenticated:
+            return False
+        return user.favorite_gigs.filter(id=instance.id).exists()
 
     def get_replies(self, instance):
         return instance.replies()
@@ -182,11 +181,10 @@ class GigDocumentSerializer(serializers.Serializer):  # noqa
         return self.context["request"].build_absolute_uri(document.thumbnail)
 
     def get_is_favorite(self, document):
-        return (
-            self.context["request"]
-            .user.favorite_gigs.filter(id=document.id)
-            .exists()
-        )
+        user = self.context["request"].user
+        if not user.is_authenticated:
+            return False
+        return user.favorite_gigs.filter(id=document.id).exists()
 
     def get_replies(self, document):
         return document.replies

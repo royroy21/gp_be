@@ -194,11 +194,10 @@ class UserSerializerIfNotOwner(serializers.ModelSerializer):
         ).data
 
     def get_is_favorite(self, instance):
-        return (
-            self.context["request"]
-            .user.favorite_users.filter(id=instance.id)
-            .exists()
-        )
+        user = self.context["request"].user
+        if not user.is_authenticated:
+            return False
+        return user.favorite_users.filter(id=instance.id).exists()
 
     def get_image(self, instance):
         """
@@ -256,11 +255,10 @@ class UserDocumentSerializer(serializers.Serializer):  # noqa
         ]
 
     def get_is_favorite(self, document):
-        return (
-            self.context["request"]
-            .user.favorite_users.filter(id=document.id)
-            .exists()
-        )
+        user = self.context["request"].user
+        if not user.is_authenticated:
+            return False
+        return user.favorite_users.filter(id=document.id).exists()
 
     def get_image(self, document):
         """Converting here to get full image URL with domain."""
