@@ -80,10 +80,8 @@ class RoomSerializer(serializers.ModelSerializer):
         return message.message
 
     def get_members(self, room):
-        requesting_user = self.context["request"].user
-        query = room.members.exclude(id=requesting_user.id)
         return user_serializers.UserSerializerIfNotOwner(
-            query,
+            room.members,
             many=True,
             context=self.context,
         ).data
