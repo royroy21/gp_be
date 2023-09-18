@@ -55,8 +55,9 @@ class RoomSerializer(serializers.ModelSerializer):
             return room.gig.title
 
         # Assume room is type DIRECT
-        requesting_user = self.context["request"].user
-        return room.members.exclude(id=requesting_user.id).first().username
+        return ", ".join(
+            member.username for member in room.members.filter(is_active=True)
+        )
 
     def get_timestamp(self, room):
         """
