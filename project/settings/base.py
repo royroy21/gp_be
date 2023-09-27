@@ -33,9 +33,10 @@ ALLOWED_HOSTS: List[str]
 
 # Application definition
 LOCAL_APPS = [
-    "project.custom_user",
-    "project.country",
+    "project.audio",
     "project.chat",
+    "project.country",
+    "project.custom_user",
     "project.genre",
     "project.gig",
     # HTTP, HTTP2 and WebSocket protocol server.

@@ -20,6 +20,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt import views
 
+from project.audio import api as audio_api
 from project.chat import api as chat_api
 from project.country import api as country_api
 from project.custom_user import api as user_api
@@ -31,6 +32,8 @@ api_router.register(r"user", user_api.UserViewSet, basename="user")
 api_router.register(
     r"message", chat_api.MessageViewSet, basename="message-api"
 )
+api_router.register(r"album", audio_api.AlbumViewSet, basename="album-api")
+api_router.register(r"audio", audio_api.AudioViewSet, basename="audio-api")
 api_router.register(r"room", chat_api.RoomViewSet, basename="room-api")
 api_router.register(r"gig", gig_api.GigViewSet, basename="gig-api")
 

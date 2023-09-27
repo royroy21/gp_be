@@ -1,4 +1,15 @@
+from rest_framework import mixins
 from rest_framework.response import Response
+
+
+class CustomDestroyModelMixin(mixins.DestroyModelMixin):
+    """
+    Sets active to False instead of performing full delete.
+    """
+
+    def perform_destroy(self, instance):
+        instance.active = False
+        instance.save()
 
 
 class ListModelMixinWithSerializerContext:
