@@ -80,12 +80,16 @@ class AudioSerializer(serializers.ModelSerializer):
         after are bumped up one position.
         """
         clashing_track = album.audio_tracks.filter(
-            position=new_position, active=True
+            position=new_position,
+            active=True,
         ).first()
         if not clashing_track:
             return
 
-        tracks_to_amend = album.audio_tracks.filter(position__gte=new_position)
+        tracks_to_amend = album.audio_tracks.filter(
+            position__gte=new_position,
+            active=True,
+        )
         tracks_to_amend.update(position=F("position") + 1)
 
 
