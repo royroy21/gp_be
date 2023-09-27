@@ -4,15 +4,15 @@ from django_elasticsearch_dsl_drf import constants, filter_backends
 from django_elasticsearch_dsl_drf import viewsets as dsl_drf_view_sets
 from django_elasticsearch_dsl_drf.pagination import PageNumberPagination
 from elasticsearch_dsl import Q
-from rest_framework import viewsets
 
 from project.core import permissions
 from project.core.api import mixins as core_mixins
+from project.core.api import viewsets as core_viewsets
 from project.gig import models, serializers
 from project.gig.search_indexes.documents.gig import GigDocument
 
 
-class GigViewSet(viewsets.ModelViewSet):
+class GigViewSet(core_viewsets.CustomModelViewSet):
     """
     Gig API. List and retrieve are left open in regards to permissions.
     """
@@ -35,10 +35,6 @@ class GigViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         permissions.is_owner(request, self.get_object())
         return super().destroy(request, *args, **kwargs)
-
-    def perform_destroy(self, instance):
-        instance.active = False
-        instance.save()
 
     def get_queryset(self):
         if not self.request.user.is_authenticated:

@@ -29,7 +29,7 @@ COUNTRIES_THAT_USE_MILES = [
 class UserSerializer(serializers.ModelSerializer):
     location = LocationField()
     country = country_serializers.CountrySerializer()
-    genres = genre_serializers.GenreSerializer(many=True, read_only=True)
+    genres = genre_serializers.GenreSerializer(many=True)
     image = serializers.ImageField(required=False, allow_null=True)
     thumbnail = serializers.ImageField(read_only=True)
 
@@ -50,16 +50,6 @@ class UserSerializer(serializers.ModelSerializer):
             "image",
             "thumbnail",
         ]
-
-    def validate(self, attrs):
-        if "genres" in self.initial_data:
-            genres = self.initial_data["genres"]
-            if genres is not None:
-                attrs["genres"] = genre_serializers.GenreSerializer(
-                    data=genres, many=True
-                ).to_internal_value(data=genres)
-
-        return super().validate(attrs)
 
     def get_units(self, country):
         if country.code in COUNTRIES_THAT_USE_MILES:

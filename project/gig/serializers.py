@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core import exceptions as django_exceptions
 from django.db import transaction
 from rest_framework import serializers
 
@@ -16,8 +17,8 @@ User = get_user_model()
 
 class GigSerializer(serializers.ModelSerializer):
     user = user_serializers.UserSerializerIfNotOwner(read_only=True)
-    genres = genre_serializers.GenreSerializer(many=True, read_only=True)
-    country = country_serializers.CountrySerializer(read_only=True)
+    genres = genre_serializers.GenreSerializer(many=True, required=False)
+    country = country_serializers.CountrySerializer()
     image = serializers.ImageField(required=False, allow_null=True)
     thumbnail = serializers.ImageField(read_only=True)
     is_favorite = serializers.SerializerMethodField()
@@ -41,23 +42,6 @@ class GigSerializer(serializers.ModelSerializer):
             "is_favorite",
             "replies",
         )
-
-    def validate(self, attrs):
-        if "genres" in self.initial_data:
-            genres = self.initial_data["genres"]
-            if genres is not None:
-                attrs["genres"] = genre_serializers.GenreSerializer(
-                    data=genres, many=True
-                ).to_internal_value(data=genres)
-
-        if "country" in self.initial_data:
-            country = self.initial_data["country"]
-            if country is not None:
-                attrs["country"] = country_serializers.CountrySerializer(
-                    data=country
-                ).to_internal_value(data=country)
-
-        return super().validate(attrs)
 
     @transaction.atomic
     def create(self, validated_data):
@@ -105,6 +89,20 @@ class GigSerializer(serializers.ModelSerializer):
 
     def get_replies(self, instance):
         return instance.replies()
+
+
+class GigSerializerWithSimplifiedToInternalValue(GigSerializer):
+    """
+    Used in other serializers to get the gig object.
+    """
+
+    def to_internal_value(self, data):
+        try:
+            return models.Gig.objects.get(id=data.get("id"))
+        except models.Gig.DoesNotExist:
+            raise serializers.ValidationError({"Gig does not exist"})
+        except django_exceptions.FieldError:
+            raise serializers.ValidationError("Invalid data")
 
 
 class GigDocumentSerializer(serializers.Serializer):  # noqa

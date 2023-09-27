@@ -2,6 +2,7 @@ import json
 
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
+from django.db.models import signals
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -20,6 +21,8 @@ class AuthTestCase(TestCase):
         self.user, self.drf_client = setup_user_with_drf_client(
             username="fred",
         )
+        # Disables django_elasticsearch_dsl signals for updating documents.
+        signals.post_save.receivers = []
 
     def test_get_user_where_user_is_owner(self):
         response = self.drf_client.get(
@@ -190,6 +193,8 @@ class UserAPITestCase(TestCase):
         self.user, self.drf_client = setup_user_with_drf_client(
             username="fred",
         )
+        # Disables django_elasticsearch_dsl signals for updating documents.
+        signals.post_save.receivers = []
 
     def test_update_location(self):
         country = country_models.CountryCode.objects.create(
@@ -322,6 +327,9 @@ class UserAPITestCase(TestCase):
 class UserSerializerTestCase(TestCase):
     def setUp(self):
         self.user = create_user(username="fred")
+
+        # Disables django_elasticsearch_dsl signals for updating documents.
+        signals.post_save.receivers = []
 
     def test_update_location(self):
         country = country_models.CountryCode.objects.create(
