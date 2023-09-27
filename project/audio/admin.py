@@ -36,9 +36,10 @@ class AudioAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "title",
+        "position",
+        "album",
         "image",
         "file",
-        "album",
         "user",
     )
     search_fields = (
