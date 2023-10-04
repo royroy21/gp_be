@@ -8,6 +8,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from project.audio import models as audio_models
 from project.core.tests import create_user, setup_user_with_drf_client
 from project.country import models as country_models
 from project.custom_user import serializers
@@ -134,6 +135,14 @@ class AuthTestCase(TestCase):
         )
         response = drf_client.get(path=reverse("user-me"))
         self.assertEqual(response.data["email"], email)
+
+        # Test default album is created
+        album_query = audio_models.Album.objects.filter(
+            title="default",
+            profile=user,
+            user=user,
+        )
+        self.assertTrue(album_query.exists())
 
     def test_list_users_where_user_is_authenticated(self):
         other_user, _ = setup_user_with_drf_client(

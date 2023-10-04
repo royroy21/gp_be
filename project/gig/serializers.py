@@ -3,6 +3,7 @@ from django.core import exceptions as django_exceptions
 from django.db import transaction
 from rest_framework import serializers
 
+from project.audio import models as audio_models
 from project.country import models as country_models
 from project.country import serializers as country_serializers
 from project.custom_user import serializers as user_serializers
@@ -50,6 +51,10 @@ class GigSerializer(serializers.ModelSerializer):
         gig = super().create(copy_of_validated_data)
         if genres is not None:
             gig.genres.add(*genres)
+        audio_models.Album.create_default_album_for_gig(
+            gig=gig,
+            user=gig.user,
+        )
         return gig
 
     @transaction.atomic

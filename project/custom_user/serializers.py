@@ -6,6 +6,7 @@ from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt import serializers as simplejwt_serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from project.audio import models as audio_models
 from project.country import models as country_models
 from project.country import serializers as country_serializers
 from project.custom_user.search_indexes.documents.user import UserDocument
@@ -115,10 +116,15 @@ class CreateUserSerializer(serializers.ModelSerializer):
         return username
 
     def create(self, validated_data):
-        return User.objects.create_user(
+        user = User.objects.create_user(
             username=self.create_username(),
             **validated_data,
         )
+        audio_models.Album.create_default_album_for_profile(
+            profile=user,
+            user=user,
+        )
+        return user
 
     @property
     def data(self):

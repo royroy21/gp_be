@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
+from project.audio import models as audio_models
 from project.core import tests as core_tests
 from project.country import models as country_models
 from project.genre import models as genre_models
@@ -98,6 +99,14 @@ class GigAPITestCase(TestCase):
         self.assertEqual(gig.user, self.user)
         self.assertEqual(gig.genres.count(), 1)
         self.assertEqual(gig.genres.first().genre, self.genre.genre)
+
+        # Test default album is created
+        album_query = audio_models.Album.objects.filter(
+            title="default",
+            gig=gig,
+            user=self.user,
+        )
+        self.assertTrue(album_query.exists())
 
     def test_patch_gig(self):
         updated_title = "Secret Man Feelings gig!"
