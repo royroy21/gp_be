@@ -5,7 +5,7 @@ from project.core.api import viewsets as core_viewsets
 
 class AlbumViewSet(core_viewsets.CustomModelViewSet):
     """
-    Album API.
+    Album API. List and retrieve are left open in regard to permissions.
     """
 
     queryset = models.Album.objects.filter(active=True).order_by(
@@ -30,12 +30,19 @@ class AlbumViewSet(core_viewsets.CustomModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
     def get_queryset(self):
+        profile_id = self.request.query_params.get("profile_id")  # noqa
+        if profile_id:
+            return self.queryset.filter(profile__id=profile_id)
+        gig_id = self.request.query_params.get("gig__id")  # noqa
+        if gig_id:
+            return self.queryset.filter(gig_id__id=gig_id)
+
         return self.queryset
 
 
 class AudioViewSet(core_viewsets.CustomModelViewSet):
     """
-    Audio API.
+    Audio API. List and retrieve are left open in regard to permissions.
     """
 
     queryset = models.Audio.objects.filter(active=True).order_by(
