@@ -98,6 +98,7 @@ class AlbumSerializer(serializers.ModelSerializer):
     genres = genre_serializers.GenreSerializer(many=True)
     gig = gig_serializers.GigSerializerWithSimplifiedToInternalValue()
     tracks = serializers.SerializerMethodField()
+    number_of_tracks = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Album
@@ -112,6 +113,7 @@ class AlbumSerializer(serializers.ModelSerializer):
             "gig",
             "user",
             "tracks",
+            "number_of_tracks",
         )
 
     @transaction.atomic
@@ -165,3 +167,6 @@ class AlbumSerializer(serializers.ModelSerializer):
             context=self.context,
         ).data
         return sorted(data, key=lambda track: track["position"])
+
+    def get_number_of_tracks(self, album):
+        return album.audio_tracks.filter(active=True).count()
