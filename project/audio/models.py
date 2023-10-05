@@ -8,9 +8,6 @@ class Album(BaseModel):
         max_length=254,
         default="default",
     )
-
-    DEFAULT_DESCRIPTION_FOR_GIG = "Default album for your gig."
-    DEFAULT_DESCRIPTION_FOR_PROFILE = "Default album for your profile."
     description = models.TextField(
         default="",
         blank=True,
@@ -60,7 +57,6 @@ class Album(BaseModel):
     @classmethod
     def create_default_album_for_gig(cls, gig, user):
         return cls.objects.create(
-            description=cls.DEFAULT_DESCRIPTION_FOR_GIG,
             user=user,
             gig=gig,
         )
@@ -68,7 +64,6 @@ class Album(BaseModel):
     @classmethod
     def create_default_album_for_profile(cls, profile, user):
         return cls.objects.create(
-            description=cls.DEFAULT_DESCRIPTION_FOR_PROFILE,
             user=user,
             profile=profile,
         )
