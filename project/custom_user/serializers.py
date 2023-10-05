@@ -1,6 +1,7 @@
 import random
 
 from django.contrib.auth import get_user_model
+from django.core import exceptions as django_exceptions
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt import serializers as simplejwt_serializers
@@ -9,6 +10,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from project.audio import models as audio_models
 from project.country import models as country_models
 from project.country import serializers as country_serializers
+from project.custom_user import models
 from project.custom_user.search_indexes.documents.user import UserDocument
 from project.genre import models as genre_models
 from project.genre import serializers as genre_serializers
@@ -216,6 +218,20 @@ class UserSerializerIfNotOwner(serializers.ModelSerializer):
         if not instance.thumbnail:
             return None
         return domain.build_absolute_uri(instance.thumbnail.url)
+
+
+class UserSerializerWithSimplifiedToInternalValue(UserSerializerIfNotOwner):
+    """
+    Used in other serializers to get the user object.
+    """
+
+    def to_internal_value(self, data):
+        try:
+            return models.User.objects.get(id=data.get("id"))
+        except models.User.DoesNotExist:
+            raise serializers.ValidationError({"User does not exist"})
+        except django_exceptions.FieldError:
+            raise serializers.ValidationError("Invalid data")
 
 
 class UserDocumentSerializer(serializers.Serializer):  # noqa

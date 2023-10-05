@@ -95,8 +95,13 @@ class AudioSerializer(serializers.ModelSerializer):
 
 class AlbumSerializer(serializers.ModelSerializer):
     user = user_serializers.UserSerializerIfNotOwner(read_only=True)
+    profile = user_serializers.UserSerializerWithSimplifiedToInternalValue(
+        required=False,
+    )
     genres = genre_serializers.GenreSerializer(many=True)
-    gig = gig_serializers.GigSerializerWithSimplifiedToInternalValue()
+    gig = gig_serializers.GigSerializerWithSimplifiedToInternalValue(
+        required=False
+    )
     tracks = serializers.SerializerMethodField()
     number_of_tracks = serializers.SerializerMethodField()
 
