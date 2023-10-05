@@ -102,6 +102,7 @@ class AlbumSerializer(serializers.ModelSerializer):
     gig = gig_serializers.GigSerializerWithSimplifiedToInternalValue(
         required=False
     )
+    is_default = serializers.BooleanField(read_only=True)
     tracks = serializers.SerializerMethodField()
     number_of_tracks = serializers.SerializerMethodField()
 
@@ -117,6 +118,7 @@ class AlbumSerializer(serializers.ModelSerializer):
             "profile",
             "gig",
             "user",
+            "is_default",
             "tracks",
             "number_of_tracks",
         )

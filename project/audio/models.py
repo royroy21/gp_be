@@ -53,12 +53,14 @@ class Album(BaseModel):
         on_delete=models.CASCADE,
         related_name="albums",
     )
+    is_default = models.BooleanField(default=False)
 
     @classmethod
     def create_default_album_for_gig(cls, gig, user):
         return cls.objects.create(
             user=user,
             gig=gig,
+            is_default=True,
         )
 
     @classmethod
@@ -66,6 +68,7 @@ class Album(BaseModel):
         return cls.objects.create(
             user=user,
             profile=profile,
+            is_default=True,
         )
 
 
