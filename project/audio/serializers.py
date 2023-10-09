@@ -40,8 +40,9 @@ class AudioSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def update(self, instance, validated_data):
         copy_of_validated_data = self.copy_data(validated_data)
-
         if copy_of_validated_data.get("album", None) is None:
+            # Setting false here for when audio
+            # track is removed from album.
             copy_of_validated_data["active"] = False
         else:
             self.calculate_new_track_positions(
@@ -65,11 +66,13 @@ class AudioSerializer(serializers.ModelSerializer):
             # Adding like this as we need to preserve None for
             # files as this indicates a file to be removed.
             data_copy["image"] = data["image"]
-            data_copy["file"] = data["file"]
             # Removing thumbnail here as the create_thumbnail
             # task will update it. Or if image is deleted also
             # delete thumbnail.
             data_copy["thumbnail"] = None
+
+        if "file" in data:
+            data_copy["file"] = data["file"]
 
         return data_copy
 
