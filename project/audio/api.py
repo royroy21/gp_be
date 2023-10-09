@@ -61,12 +61,56 @@ class AudioViewSet(core_viewsets.CustomModelViewSet):
     serializer_class = serializers.AudioSerializer
 
     def create(self, request, *args, **kwargs):
+        """
+        Overwriting here so to inject album.
+        Unable to do at serializer due to circular imports.
+        """
         permissions.is_authenticated(request)
-        return super().create(request, *args, **kwargs)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        data = serializer.data
+        data["album"] = self.get_serialized_album(data["album"])
+        return Response(
+            data,
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
 
     def update(self, request, *args, **kwargs):
+        """
+        Overwriting here so to inject album.
+        Unable to do at serializer due to circular imports.
+        """
         permissions.is_owner(request, self.get_object())
-        return super().update(request, *args, **kwargs)
+
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = self.get_serializer(
+            instance,
+            data=request.data,
+            partial=partial,
+        )
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, "_prefetched_objects_cache", None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        data = serializer.data
+        data["album"] = self.get_serialized_album(data["album"])
+        return Response(data)
+
+    def get_serialized_album(self, album):
+        if not album:
+            return None
+        return serializers.AlbumSerializer(
+            instance=models.Album.objects.get(id=album),
+            context=self.get_serializer_context(),
+        ).data
 
     def partial_update(self, request, *args, **kwargs):
         permissions.is_owner(request, self.get_object())
