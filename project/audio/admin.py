@@ -41,6 +41,7 @@ class AudioAdmin(admin.ModelAdmin):
         "image",
         "file",
         "user",
+        "active",
     )
     search_fields = (
         "id",
