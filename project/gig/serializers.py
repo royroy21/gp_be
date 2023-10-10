@@ -55,6 +55,8 @@ class GigSerializer(serializers.ModelSerializer):
             gig=gig,
             user=gig.user,
         )
+        if copy_of_validated_data.get("image", None) is not None:
+            image_tasks.create_thumbnail.delay("gig", "gig", gig.id)
         return gig
 
     @transaction.atomic
@@ -65,7 +67,7 @@ class GigSerializer(serializers.ModelSerializer):
         if genres is not None:
             gig.genres.clear()
             gig.genres.add(*genres)
-        if "image" in copy_of_validated_data:
+        if copy_of_validated_data.get("image", None) is not None:
             image_tasks.create_thumbnail.delay("gig", "gig", gig.id)
         return gig
 

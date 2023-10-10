@@ -33,7 +33,7 @@ class AudioSerializer(serializers.ModelSerializer):
             album=copy_of_validated_data["album"],
         )
         audio = super().create(copy_of_validated_data)
-        if "image" in copy_of_validated_data:
+        if copy_of_validated_data.get("image", None) is not None:
             image_tasks.create_thumbnail.delay("audio", "audio", audio.id)
         return audio
 
@@ -50,7 +50,7 @@ class AudioSerializer(serializers.ModelSerializer):
                 album=instance.album,
             )
         audio = super().update(instance, copy_of_validated_data)
-        if "image" in copy_of_validated_data:
+        if copy_of_validated_data.get("image", None) is not None:
             image_tasks.create_thumbnail.delay("audio", "audio", audio.id)
         return audio
 
@@ -134,7 +134,7 @@ class AlbumSerializer(serializers.ModelSerializer):
         if genres is not None:
             album.genres.clear()
             album.genres.add(*genres)
-        if "image" in copy_of_validated_data:
+        if copy_of_validated_data.get("image", None) is not None:
             image_tasks.create_thumbnail.delay("audio", "album", album.id)
         return album
 
@@ -146,7 +146,7 @@ class AlbumSerializer(serializers.ModelSerializer):
         if genres is not None:
             album.genres.clear()
             album.genres.add(*genres)
-        if "image" in copy_of_validated_data:
+        if copy_of_validated_data.get("image", None) is not None:
             image_tasks.create_thumbnail.delay("audio", "album", album.id)
         return album
 

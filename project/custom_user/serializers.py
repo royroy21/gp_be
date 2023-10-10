@@ -67,7 +67,7 @@ class UserSerializer(serializers.ModelSerializer):
         if genres is not None:
             user.genres.clear()
             user.genres.add(*genres)
-        if "image" in copy_of_validated_data:
+        if copy_of_validated_data.get("image", None) is not None:
             image_tasks.create_thumbnail.delay("custom_user", "user", user.id)
         update_gig_search_indexes(user)
         return user
