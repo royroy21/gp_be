@@ -218,7 +218,7 @@ class AudioAPITestCase(BaseAudioAPITestCase):
         response_json = response.json()
         self.assertEqual(response_json["title"], data["title"])
         self.assertEqual(response_json["position"], data["position"])
-        self.assertEqual(response_json["album"]["id"], data["album"])
+        self.assertEqual(response_json["album"], data["album"])
 
     def test_remove_track_from_album(self):
         album = self.create_album_with_gig_and_genres()
