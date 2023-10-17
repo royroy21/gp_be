@@ -222,29 +222,39 @@ class AudioAPITestCase(BaseAudioAPITestCase):
 
     def test_remove_track_from_album(self):
         album = self.create_album_with_gig_and_genres()
-        audio = models.Audio.objects.create(
+        audio_mans_last = models.Audio.objects.create(
+            title="Mans Last",
+            position=3,
+            album=album,
+            user=self.user,
+        )
+        audio_mans_two = models.Audio.objects.create(
+            title="Mans Twos",
+            position=2,
+            album=album,
+            user=self.user,
+        )
+        audio_mans_one = models.Audio.objects.create(
             title="Mans One",
             position=1,
             album=album,
             user=self.user,
         )
-        album.audio_tracks.add(audio)
-        data = {
-            "id": audio.id,
-            "title": audio.title,
-            "position": audio.position,
-            "album": None,
-        }
-        response = self.drf_client.patch(
-            path=reverse("audio-api-detail", args=(audio.id,)),
-            data=json.dumps(data),
-            content_type="application/json",
+        album.audio_tracks.add(audio_mans_one)
+        response = self.drf_client.delete(
+            path=reverse("audio-api-detail", args=(audio_mans_one.id,)),
         )
-        self.assertEqual(response.status_code, 200)
-        audio.refresh_from_db()
+        self.assertEqual(response.status_code, 204)
+        audio_mans_one.refresh_from_db()
         album.refresh_from_db()
-        self.assertFalse(audio.active)
-        self.assertEqual(album.audio_tracks.count(), 0)
+        self.assertFalse(audio_mans_one.active)
+        self.assertEqual(album.audio_tracks.count(), 3)
+
+        # Check positions reinitialize correctly
+        audio_mans_two.refresh_from_db()
+        self.assertEqual(audio_mans_two.position, 1)
+        audio_mans_last.refresh_from_db()
+        self.assertEqual(audio_mans_last.position, 2)
 
     def test_adding_audio_with_clashing_positions(self):
         album = self.create_album_with_gig_and_genres()

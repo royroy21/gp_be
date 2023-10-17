@@ -35,23 +35,22 @@ class AudioSerializer(serializers.ModelSerializer):
         audio = super().create(copy_of_validated_data)
         if copy_of_validated_data.get("image", None) is not None:
             image_tasks.create_thumbnail.delay("audio", "audio", audio.id)
+
+        self.reinitialize_track_positions(copy_of_validated_data["album"])
         return audio
 
     @transaction.atomic
     def update(self, instance, validated_data):
         copy_of_validated_data = self.copy_data(validated_data)
-        if copy_of_validated_data.get("album", None) is None:
-            # Setting false here for when audio
-            # track is removed from album.
-            copy_of_validated_data["active"] = False
-        else:
-            self.calculate_new_track_positions(
-                new_position=copy_of_validated_data["position"],
-                album=instance.album,
-            )
+        self.calculate_new_track_positions(
+            new_position=copy_of_validated_data["position"],
+            album=instance.album,
+        )
         audio = super().update(instance, copy_of_validated_data)
         if copy_of_validated_data.get("image", None) is not None:
             image_tasks.create_thumbnail.delay("audio", "audio", audio.id)
+
+        self.reinitialize_track_positions(instance.album)
         return audio
 
     def copy_data(self, data):
@@ -94,6 +93,18 @@ class AudioSerializer(serializers.ModelSerializer):
             active=True,
         )
         tracks_to_amend.update(position=F("position") + 1)
+
+    @staticmethod
+    def reinitialize_track_positions(album):
+        """
+        Sets track positions back to 1,2,3,4 etc.
+        Useful if track positions get messy due to continual
+        adding and deleting of tracks from an album.
+        """
+        tracks = album.audio_tracks.filter(active=True).order_by("position")
+        for new_position, track in enumerate(tracks, 1):
+            track.position = new_position
+            track.save()
 
 
 class AlbumSerializer(serializers.ModelSerializer):

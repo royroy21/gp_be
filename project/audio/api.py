@@ -74,7 +74,10 @@ class AudioViewSet(core_viewsets.CustomModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         permissions.is_owner(request, self.get_object())
-        return super().destroy(request, *args, **kwargs)
+        audio = self.get_object()
+        self.perform_destroy(audio)
+        serializers.AudioSerializer.reinitialize_track_positions(audio.album)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_queryset(self):
         return self.queryset
