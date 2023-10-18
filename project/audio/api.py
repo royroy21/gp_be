@@ -43,7 +43,7 @@ class AlbumViewSet(core_viewsets.CustomModelViewSet):
         profile_id = self.request.query_params.get("profile_id")  # noqa
         if profile_id:
             return self.queryset.filter(profile__id=profile_id)
-        gig_id = self.request.query_params.get("gig__id")  # noqa
+        gig_id = self.request.query_params.get("gig_id")  # noqa
         if gig_id:
             return self.queryset.filter(gig_id__id=gig_id)
 
