@@ -5,6 +5,7 @@ from asgiref.sync import async_to_sync
 from channels import exceptions
 from channels.generic.websocket import WebsocketConsumer
 from django.contrib.auth import get_user_model
+from django.db.models import Count
 
 from project.chat import models, serializers
 from project.chat.consumers import common
@@ -107,10 +108,16 @@ class NewRoomConsumer(WebsocketConsumer):
         return room
 
     def get_direct_message_room(self, user, to_user):
+        """
+        Returns an existing direct message room only if
+        the members of that room are the user and to_user.
+        """
         query = (
             models.Room.objects.filter(type=models.DIRECT, active=True)
+            .annotate(member_count=Count("members"))
             .filter(members=user)
             .filter(members=to_user)
+            .filter(member_count=2)
         )
         return query.first()
 
