@@ -70,10 +70,6 @@ class UserViewSet(viewsets.ModelViewSet):
             return self.queryset.exclude(id=self.request.user.id)
         return self.queryset
 
-    def list(self, request, *args, **kwargs):
-        permissions.is_authenticated(request)
-        return super().list(request, *args, **kwargs)
-
     def destroy(self, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
