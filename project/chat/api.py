@@ -44,6 +44,7 @@ class MessageViewSet(mixins.ListModelMixin, GenericViewSet):
 class RoomViewSet(
     core_mixins.ListModelMixinWithSerializerContext,
     mixins.UpdateModelMixin,
+    mixins.RetrieveModelMixin,
     GenericViewSet,
 ):
     """
@@ -75,6 +76,10 @@ class RoomViewSet(
         permissions.is_owner(request, self.get_object())
         kwargs["partial"] = True
         return super().update(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        permissions.is_member(request, self.get_object())
+        return super().retrieve(request, *args, **kwargs)
 
 
 class RoomDocumentViewSet(
