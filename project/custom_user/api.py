@@ -38,10 +38,6 @@ class UserViewSet(viewsets.ModelViewSet):
             headers=headers,
         )
 
-    def retrieve(self, request, *args, **kwargs):
-        permissions.is_authenticated(request)
-        return super().retrieve(request, *args, **kwargs)
-
     def get_serializer(self, instance=None, *args, **kwargs):
         # If no instance, instance is being created.
         if instance is None:

@@ -57,7 +57,7 @@ class AuthTestCase(TestCase):
         response = drf_client.get(
             path=reverse("user-detail", args=(self.user.id,)),
         )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_patch_user_where_user_is_owner(self):
         self.assertEqual(self.user.subscribed_to_emails, True)
