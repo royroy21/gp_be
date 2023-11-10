@@ -48,7 +48,7 @@ class Command(BaseCommand):
         faker = Faker()
         number_of_gigs = 1000
         for n in range(number_of_gigs):
-            country = country_models.CountryCode.objects.get(code="GB")
+            country = country_models.CountryCode.objects.get(code="UK")
             gig = models.Gig.objects.create(
                 user=self.create_user(faker),
                 title=faker.unique.sentence(),
