@@ -40,7 +40,7 @@ usage:
 	@echo "psql............................Connect to postgis server"
 	@echo "shell...........................Django's shell plus command"
 	@echo "test............................Run tests for the project"
-	@echo "up..............................docker-compose up"
+	@echo "up..............................docker compose up"
 	@echo "update_requirements.............Update requirements file after adding a dependency"
 	@echo "rebuild_indexes.................Rebuild elastic search indexes"
 
@@ -50,34 +50,34 @@ attach:
 	@docker attach ${PROJECT_DIR}_backend_1
 
 black:
-	@docker-compose run --rm backend black -l 79 . ${ARGS}
+	@docker compose run --rm backend black -l 79 . ${ARGS}
 
 black_check:
 	$(MAKE) black ARGS="--check"
 
 chown:
-	@docker-compose run --rm backend chown -R "`id -u`:`id -u`" "/code/${ARGS}"
+	@docker compose run --rm backend chown -R "`id -u`:`id -u`" "/code/${ARGS}"
 
 clear_cache:
 	$(MAKE) manage ARGS="clear_cache ${ARGS}"
 
 clear_pyc:
-	@docker-compose run --rm backend find . -name '*.pyc' -delete
+	@docker compose run --rm backend find . -name '*.pyc' -delete
 
 help:
 	$(MAKE) usage
 
 isort:
-	@docker-compose run --rm backend isort . ${ARGS}
+	@docker compose run --rm backend isort . ${ARGS}
 
 isort_check:
 	$(MAKE) isort ARGS="--check"
 
 lint:
-	@docker-compose run --rm backend flake8 . ${ARGS}
+	@docker compose run --rm backend flake8 . ${ARGS}
 
 manage:
-	@docker-compose run --rm ${OPTIONS} backend python3 ${PYTHON_ARGS} project/manage.py ${ARGS}
+	@docker compose run --rm ${OPTIONS} backend python3 ${PYTHON_ARGS} project/manage.py ${ARGS}
 
 migrate:
 	$(MAKE) manage ARGS="migrate ${ARGS}"
@@ -88,7 +88,7 @@ migrations:
 mypy:
 	# Using --no-incremental to avoid bug https://github.com/typeddjango/django-stubs/issues/760.
 	# This results in mypy not using cache meaning it's pretty slow. Fix later.
-	@docker-compose run --rm backend mypy --no-incremental --config-file mypy.ini . ${ARGS}
+	@docker compose run --rm backend mypy --no-incremental --config-file mypy.ini . ${ARGS}
 
 PG_DB_HOST=database
 PG_DB_PORT=5432
@@ -97,7 +97,7 @@ PG_DB_USER=postgres
 PG_DB_PASSWORD=postgres
 
 psql:
-	@docker-compose run --rm -e PGPASSWORD=$(PG_DB_PASSWORD) database psql -h $(PG_DB_HOST) -p $(PG_DB_PORT) -U $(PG_DB_USER) -d $(PG_DB_NAME) $(ARGS)
+	@docker compose run --rm -e PGPASSWORD=$(PG_DB_PASSWORD) database psql -h $(PG_DB_HOST) -p $(PG_DB_PORT) -U $(PG_DB_USER) -d $(PG_DB_NAME) $(ARGS)
 
 shell:
 	$(MAKE) manage ARGS="shell_plus --ipython ${ARGS}"
@@ -106,10 +106,10 @@ test:
 	$(MAKE) manage ARGS="test project${ARGS} --settings=project.settings.test"
 
 up:
-	@docker-compose up ${ARGS}
+	@docker compose up ${ARGS}
 
 update_requirements:
-	@docker-compose run --rm backend pip freeze > requirements.txt
+	@docker compose run --rm backend pip freeze > requirements.txt
 
 rebuild_indexes:
 	$(MAKE) manage ARGS="search_index --rebuild -f ${ARGS}"
