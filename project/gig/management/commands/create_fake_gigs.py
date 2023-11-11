@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from faker import Faker
 
+from project.audio import models as audio_models
 from project.country import models as country_models
 from project.genre import models as genre_models
 from project.gig import models
@@ -67,13 +68,18 @@ class Command(BaseCommand):
         username = faker.first_name()
         user_query = User.objects.filter(username__iexact=username)
         if user_query.exists():
-            return user_query.first()
+            user = user_query.first()
         else:
-            return User.objects.create_user(
+            user = User.objects.create_user(
                 username=username,
                 email=f"{username}@example.com",
                 password=faker.password(),
             )
+        audio_models.Album.create_default_album_for_profile(
+            profile=user,
+            user=user,
+        )
+        return user
 
     def get_genres(self):
         genre_ids = genre_models.Genre.objects.values_list("id", flat=True)
