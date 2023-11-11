@@ -1,3 +1,5 @@
+from corsheaders import defaults
+
 from .base import *  # noqa
 
 DATABASES = {
@@ -13,38 +15,30 @@ DATABASES = {
 
 ENV = "local"
 
+# Address to Django server needs to be here in production.
+ALLOWED_HOSTS = [
+    "*",
+]
+
 CORS_ALLOW_ALL_ORIGINS = True
 
 # CORS :/
 # https://gankrin.org/cors-no-access-control-allow-origin-header-error-django/
 # https://pypi.org/project/django-cors-headers/
-CORS_ALLOWED_ORIGINS = ["http://localhost:19006", "http://127.0.0.1:19006"]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:19006",
+    "http://127.0.0.1:19006",
+]
 
-CORS_ALLOW_METHODS = (
-    "GET",
-    "OPTIONS",
-    "PATCH",
-    "POST",
-    "PUT",
-    "DELETE",
-)
+CORS_ALLOW_METHODS = (*defaults.default_methods,)
 
 CORS_ALLOW_HEADERS = (
-    "accept",
-    "authorization",
-    "content-type",
-    "user-agent",
-    "x-csrftoken",
-    "x-requested-with",
-    "Content-Type",
+    *defaults.default_headers,
     # Headers sent by react native web when sending image data.
     "Access",
     "Access-Control-Allow-Headers",
     "Access-Control-Allow-Methods",
     "Access-Control-Allow-Origin",
-    "Authorization",
-    "Content-Type",
-    "Dnt",
     "Referer",
     "User-Agent",
 )
