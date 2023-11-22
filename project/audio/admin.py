@@ -13,6 +13,7 @@ class AlbumAdmin(admin.ModelAdmin):
         "profile",
         "gig",
         "user",
+        "active",
     )
     search_fields = (
         "id",
