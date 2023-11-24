@@ -142,7 +142,9 @@ class GigDocumentViewSet(
             favorite_gigs_ids = self.request.user.favorite_gigs.filter(  # noqa
                 active=True,
             ).values_list("id", flat=True)
-            favorite_gigs_query = Q("terms", id=list(favorite_gigs_ids))
+            favorite_gigs_query = Q(
+                "terms", id__raw=[str(_id) for _id in favorite_gigs_ids]
+            )
             return queryset.query(favorite_gigs_query).sort("start_date")
 
         my_gigs = self.request.query_params.get("my_gigs")

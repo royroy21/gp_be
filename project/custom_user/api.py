@@ -84,6 +84,7 @@ class UserViewSet(viewsets.ModelViewSet):
         token = request.data.get("token")
         active = request.data.get("active")
         if not token or active is None:
+            # TODO - wrong!
             return Response(
                 {"error": ["Malformed POST data."]},
                 status=400,
@@ -126,12 +127,14 @@ class UserViewSet(viewsets.ModelViewSet):
         permissions.is_authenticated(request)
         user_id = request.data.get("id")
         if not user_id:
+            # TODO - wrong!
             return Response(
                 {"error": ["Malformed POST data."]},
                 status=400,
             )
         user = models.User.objects.filter(id=user_id).first()
         if not user:
+            # TODO - wrong!
             return Response(
                 {"error": ["User not found."]},
                 status=400,
@@ -229,7 +232,10 @@ class UserDocumentViewSet(
                     is_active=True,
                 ).values_list("id", flat=True)
             )
-            favorite_users_query = Q("terms", id=list(favorite_users_ids))
+            favorite_users_query = Q(
+                "terms",
+                id__raw=[str(_id) for _id in favorite_users_ids],
+            )
             return queryset.query(favorite_users_query)
 
         return queryset

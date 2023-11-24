@@ -1,6 +1,7 @@
 from django.conf import settings
 from django_elasticsearch_dsl import Document, Index, fields
 from django_elasticsearch_dsl_drf.compat import StringField
+from elasticsearch_dsl import Keyword
 
 from project.core.search import anaylizers
 from project.core.search import fields as custom_fields
@@ -12,7 +13,7 @@ INDEX.settings(number_of_shards=1, number_of_replicas=1)
 
 @INDEX.doc_type
 class GigDocument(Document):
-    id = custom_fields.UUIDField()
+    id = StringField(attr="id_as_string", fields={"raw": Keyword()})
     user = StringField(
         attr="user.username",
         analyzer=anaylizers.html_strip,

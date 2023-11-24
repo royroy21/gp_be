@@ -14,7 +14,6 @@ from project.custom_user import models
 from project.custom_user.search_indexes.documents.user import UserDocument
 from project.genre import models as genre_models
 from project.genre import serializers as genre_serializers
-from project.gig.search_indexes.update import gig as gig_search_indexes
 from project.image import tasks as image_tasks
 from project.location.fields import LocationField
 from project.location.helpers import get_distance_between_points
@@ -69,7 +68,6 @@ class UserSerializer(serializers.ModelSerializer):
             user.genres.add(*genres)
         if copy_of_validated_data.get("image", None) is not None:
             image_tasks.create_thumbnail.delay("custom_user", "user", user.id)
-        gig_search_indexes.update_user_gigs_search_indexes(user)
         return user
 
     def copy_data(self, data):

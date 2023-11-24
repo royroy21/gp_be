@@ -165,6 +165,10 @@ class User(  # type: ignore
         null=True,
     )
 
+    def id_as_string(self):
+        """Used in elasticsearch indexing."""
+        return str(self.id)
+
     def get_jwt(self):
         refresh = tokens.RefreshToken.for_user(self)
         return {
