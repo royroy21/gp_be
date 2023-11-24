@@ -113,7 +113,7 @@ class GigSerializerWithSimplifiedToInternalValue(GigSerializer):
 
 
 class GigDocumentSerializer(serializers.Serializer):  # noqa
-    id = serializers.IntegerField(read_only=True)
+    id = serializers.CharField(read_only=True)
     user = serializers.SerializerMethodField()
     title = serializers.CharField(read_only=True)
     location = serializers.CharField(read_only=True)

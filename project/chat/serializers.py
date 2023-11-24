@@ -166,7 +166,7 @@ class RoomSerializer(serializers.ModelSerializer):
 
 
 class RoomDocumentSerializer(serializers.Serializer):  # noqa
-    id = serializers.IntegerField(read_only=True)
+    id = serializers.CharField(read_only=True)
     title = serializers.SerializerMethodField()
     timestamp = serializers.SerializerMethodField()
     last_message = serializers.SerializerMethodField()

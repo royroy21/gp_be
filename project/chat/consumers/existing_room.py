@@ -37,23 +37,13 @@ class ExistingRoomConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_room(self):
         room_id = self.scope["url_route"]["kwargs"]["room_id"]
-        try:
-            parsed_room_id = int(room_id)
-        except ValueError:
-            common.log_error(
-                self.scope,
-                "Disconnecting, could not parse room_id",
-            )
-            raise exceptions.DenyConnection
-
-        room_query = models.Room.objects.filter(id=parsed_room_id)
+        room_query = models.Room.objects.filter(id=room_id)
         if not room_query.exists():
             common.log_error(
                 self.scope,
                 "Disconnecting, room_id not found in database",
             )
             raise exceptions.DenyConnection
-
         return room_query.first()
 
     async def disconnect(self, close_code):
@@ -76,7 +66,7 @@ class ExistingRoomConsumer(AsyncWebsocketConsumer):
             {
                 "type": "chat_message",
                 "user": common.format_user(user),
-                "message_id": message_id,
+                "message_id": str(message_id),
                 "message": message,
             },
         )
@@ -98,9 +88,9 @@ class ExistingRoomConsumer(AsyncWebsocketConsumer):
         await self.send(
             text_data=json.dumps(
                 {
-                    "room": self.room.id,
+                    "room": str(self.room.id),
                     "user": event["user"],
-                    "id": event["message_id"],
+                    "id": str(event["message_id"]),
                     "message": event["message"],
                 }
             )

@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth import models as auth_models
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
@@ -75,6 +77,7 @@ class User(  # type: ignore
     USERNAME_FIELD = "username"
     EMAIL_FIELD = "email"
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = models.CharField(
         max_length=254,
         unique=True,

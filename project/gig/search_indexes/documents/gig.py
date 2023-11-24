@@ -12,7 +12,7 @@ INDEX.settings(number_of_shards=1, number_of_replicas=1)
 
 @INDEX.doc_type
 class GigDocument(Document):
-    id = fields.IntegerField(attr="id")
+    id = custom_fields.UUIDField()
     user = StringField(
         attr="user.username",
         analyzer=anaylizers.html_strip,

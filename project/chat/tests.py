@@ -115,7 +115,7 @@ class ChatTestCase(ChannelsTestCase):
         self.assertIn(self.fred.id, members_list)
 
     async def test_send_message_to_room_that_does_not_exist(self):
-        room = "cats"
+        room = "a8e8ae20-ab24-4066-a474-84c67cfaa85e"
         communicator = WebsocketCommunicator(
             application=application,
             path=f"ws/chat/{room}/?token={self.jiggy_token}&type=DIRECT",
@@ -265,8 +265,10 @@ class TestMessageViewSet(TestCase):
         results = data["results"]
         for n, result in enumerate(results):
             self.assertEqual(
-                result["user"]["id"], messages_reversed[n]["user"].id
+                result["user"]["id"],
+                str(messages_reversed[n]["user"].id),
             )
             self.assertEqual(
-                result["message"], messages_reversed[n]["message"]
+                result["message"],
+                messages_reversed[n]["message"],
             )

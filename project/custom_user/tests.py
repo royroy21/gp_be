@@ -31,7 +31,7 @@ class AuthTestCase(TestCase):
         )
         expected_keys = serializers.UserSerializer.Meta.fields
         self.assertEqual(sorted(response.data.keys()), sorted(expected_keys))
-        self.assertEqual(response.data["id"], self.user.id)
+        self.assertEqual(response.data["id"], str(self.user.id))
         self.assertEqual(response.data["username"], self.user.username)
         self.assertEqual(response.data["email"], self.user.email)
         self.assertEqual(
@@ -49,7 +49,7 @@ class AuthTestCase(TestCase):
         )
         expected_keys = serializers.UserSerializerIfNotOwner.Meta.fields
         self.assertEqual(sorted(response.data.keys()), sorted(expected_keys))
-        self.assertEqual(response.data["id"], self.user.id)
+        self.assertEqual(response.data["id"], str(self.user.id))
         self.assertEqual(response.data["username"], self.user.username)
 
     def test_get_user_where_user_is_unauthenticated(self):
@@ -157,7 +157,7 @@ class AuthTestCase(TestCase):
             sorted(response.data["results"][0].keys()),
             sorted(expected_keys),
         )
-        self.assertEqual(response.data["results"][0]["id"], other_user.id)
+        self.assertEqual(response.data["results"][0]["id"], str(other_user.id))
         self.assertEqual(
             response.data["results"][0]["username"],
             other_user.username,
@@ -174,7 +174,7 @@ class AuthTestCase(TestCase):
         response = self.drf_client.get(path=reverse("user-me"))
         expected_keys = serializers.UserSerializer.Meta.fields
         self.assertEqual(sorted(response.data.keys()), sorted(expected_keys))
-        self.assertEqual(response.data["id"], self.user.id)
+        self.assertEqual(response.data["id"], str(self.user.id))
         self.assertEqual(response.data["username"], self.user.username)
         self.assertEqual(response.data["email"], self.user.email)
         self.assertEqual(

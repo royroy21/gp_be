@@ -4,6 +4,7 @@ from django_elasticsearch_dsl_drf.compat import StringField
 
 from project.chat import models
 from project.core.search import anaylizers
+from project.core.search import fields as custom_fields
 
 name = __name__
 
@@ -13,8 +14,7 @@ INDEX.settings(number_of_shards=1, number_of_replicas=1)
 
 @INDEX.doc_type
 class RoomDocument(Document):
-    id = fields.IntegerField(attr="id")
-
+    id = custom_fields.UUIDField()
     user = StringField(
         attr="user.username",
         analyzer=anaylizers.html_strip,

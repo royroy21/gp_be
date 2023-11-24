@@ -1,5 +1,5 @@
 from django.conf import settings
-from django_elasticsearch_dsl import Document, Index, fields
+from django_elasticsearch_dsl import Document, Index
 from django_elasticsearch_dsl_drf.compat import StringField
 
 from project.core.search import anaylizers
@@ -12,7 +12,7 @@ INDEX.settings(number_of_shards=1, number_of_replicas=1)
 
 @INDEX.doc_type
 class UserDocument(Document):
-    id = fields.IntegerField(attr="id")
+    id = custom_fields.UUIDField()
     username = StringField(
         analyzer=anaylizers.html_strip,
         fields={

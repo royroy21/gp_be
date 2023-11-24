@@ -9,3 +9,8 @@ class ImageField(fields.TextField):
 class ThumbnailField(fields.TextField):
     def get_value_from_instance(self, instance, field_value_to_ignore=None):
         return instance.thumbnail.url if instance.thumbnail else None
+
+
+class UUIDField(fields.TextField):
+    def get_value_from_instance(self, instance, field_value_to_ignore=None):
+        return str(instance.id)

@@ -4,7 +4,7 @@ logger = logging.getLogger(__name__)
 
 
 def format_user(user):
-    return {"id": user.id, "username": user.username}
+    return {"id": str(user.id), "username": user.username}
 
 
 def log_error(scope, message):

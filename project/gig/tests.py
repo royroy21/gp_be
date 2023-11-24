@@ -51,7 +51,10 @@ class GigAPITestCase(TestCase):
         # Gigs user created shouldn't be visible without the `my_gigs` flag
         response = self.drf_client.get(path=reverse("gig-api-list"))
         self.assertEqual(len(response.data["results"]), 1)
-        self.assertEqual(response.data["results"][0]["id"], self.other_gig.id)
+        self.assertEqual(
+            response.data["results"][0]["id"],
+            str(self.other_gig.id),
+        )
 
     def test_filter_with_my_gigs_flag(self):
         # Only gigs user created should be visible without the `my_gigs` flag
@@ -59,7 +62,10 @@ class GigAPITestCase(TestCase):
             path=reverse("gig-api-list") + "?my_gigs=true",
         )
         self.assertEqual(len(response.data["results"]), 1)
-        self.assertEqual(response.data["results"][0]["id"], self.user_gig.id)
+        self.assertEqual(
+            response.data["results"][0]["id"],
+            str(self.user_gig.id),
+        )
 
     def test_out_of_date_gig(self):
         # Gigs that have already started should not be displayed
@@ -74,7 +80,10 @@ class GigAPITestCase(TestCase):
 
         response = self.drf_client.get(path=reverse("gig-api-list"))
         self.assertEqual(len(response.data["results"]), 1)
-        self.assertEqual(response.data["results"][0]["id"], self.other_gig.id)
+        self.assertEqual(
+            response.data["results"][0]["id"],
+            str(self.other_gig.id),
+        )
 
     def test_create_gig(self):
         start_date = timezone.now() + timedelta(hours=1)
@@ -84,7 +93,7 @@ class GigAPITestCase(TestCase):
             "country": {
                 "code": self.country.code,
             },
-            "genres": [{"id": self.genre.id, "genre": self.genre.genre}],
+            "genres": [{"id": str(self.genre.id), "genre": self.genre.genre}],
             "start_date": start_date.isoformat(),
         }
         response = self.drf_client.post(
@@ -240,7 +249,7 @@ class GigElasticSearchAPITestCase(TestCase):
             path=reverse("gig-search-list") + f"?search={username}",
         )
         self.assertEqual(len(response.data["results"]), 1)
-        self.assertEqual(response.data["results"][0]["id"], gig.id)
+        self.assertEqual(response.data["results"][0]["id"], str(gig.id))
         self.assertEqual(
             response.data["results"][0]["user"]["username"],
             username,
@@ -323,7 +332,7 @@ class GigElasticSearchAPITestCase(TestCase):
             path=reverse("gig-search-list") + "?has_spare_ticket=true",
         )
         self.assertEqual(len(response.data["results"]), 1)
-        self.assertEqual(response.data["results"][0]["id"], gig.id)
+        self.assertEqual(response.data["results"][0]["id"], str(gig.id))
 
     @core_tests.with_elasticsearch
     def test_search_on_start_date(self):
@@ -348,7 +357,7 @@ class GigElasticSearchAPITestCase(TestCase):
             ),
         )
         self.assertEqual(len(response.data["results"]), 1)
-        self.assertEqual(response.data["results"][0]["id"], gig.id)
+        self.assertEqual(response.data["results"][0]["id"], str(gig.id))
 
     @core_tests.with_elasticsearch
     def test_order_by_start_date(self):
@@ -366,9 +375,9 @@ class GigElasticSearchAPITestCase(TestCase):
             path=reverse("gig-search-list") + "?order_by=start_date",
         )
         self.assertEqual(len(response.data["results"]), 3)
-        self.assertEqual(response.data["results"][0]["id"], gig_first.id)
-        self.assertEqual(response.data["results"][1]["id"], gig_second.id)
-        self.assertEqual(response.data["results"][2]["id"], gig_last.id)
+        self.assertEqual(response.data["results"][0]["id"], str(gig_first.id))
+        self.assertEqual(response.data["results"][1]["id"], str(gig_second.id))
+        self.assertEqual(response.data["results"][2]["id"], str(gig_last.id))
 
     @core_tests.with_elasticsearch
     def test_filter_by_my_gigs(self):
@@ -379,7 +388,7 @@ class GigElasticSearchAPITestCase(TestCase):
             path=reverse("gig-search-list") + "?my_gigs=true",
         )
         self.assertEqual(len(response.data["results"]), 1)
-        self.assertEqual(response.data["results"][0]["id"], my_gig.id)
+        self.assertEqual(response.data["results"][0]["id"], str(my_gig.id))
 
     @core_tests.with_elasticsearch
     def test_searching_for_gig_after_user_changes_their_username(self):

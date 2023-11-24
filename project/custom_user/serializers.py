@@ -235,7 +235,7 @@ class UserSerializerWithSimplifiedToInternalValue(UserSerializerIfNotOwner):
 
 
 class UserDocumentSerializer(serializers.Serializer):  # noqa
-    id = serializers.IntegerField(read_only=True)
+    id = serializers.CharField(read_only=True)
     username = serializers.CharField(read_only=True)
     country = serializers.SerializerMethodField()
     bio = serializers.CharField(read_only=True)

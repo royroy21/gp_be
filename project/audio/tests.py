@@ -66,7 +66,7 @@ class AlbumAPITestCase(BaseAudioAPITestCase):
             "title": "Man Feelings",
             "description": "Songs about feelings",
             "gig": {
-                "id": gig.id,
+                "id": str(gig.id),
                 "title": gig.title,
                 "location": gig.location,
                 "country": {
@@ -74,7 +74,7 @@ class AlbumAPITestCase(BaseAudioAPITestCase):
                 },
                 "start_date": gig.start_date.isoformat(),
             },
-            "genres": [{"id": genre.id}],
+            "genres": [{"id": str(genre.id)}],
         }
         response = self.drf_client.post(
             path=reverse("album-api-list"),
@@ -98,7 +98,7 @@ class AlbumAPITestCase(BaseAudioAPITestCase):
         self.assertTrue(album)
         self.assertEqual(album.title, data["title"])
         self.assertEqual(album.description, data["description"])
-        self.assertEqual(album.gig.id, data["gig"]["id"])
+        self.assertEqual(str(album.gig.id), data["gig"]["id"])
         self.assertEqual(album.genres.count(), 1)
         self.assertEqual(album.audio_tracks.count(), 0)
         self.assertFalse(album.image)
@@ -124,11 +124,11 @@ class AlbumAPITestCase(BaseAudioAPITestCase):
         )
         self.assertEqual(album.genres.count(), 2)
         data = {
-            "id": album.id,
+            "id": str(album.id),
             "title": album.title,
             "description": album.description,
             "gig": {
-                "id": gig.id,
+                "id": str(gig.id),
                 "title": gig.title,
                 "location": gig.location,
                 "country": {
@@ -136,7 +136,7 @@ class AlbumAPITestCase(BaseAudioAPITestCase):
                 },
                 "start_date": gig.start_date.isoformat(),
             },
-            "genres": [{"id": genre_doom.id}],
+            "genres": [{"id": str(genre_doom.id)}],
         }
         response = self.drf_client.patch(
             path=reverse("album-api-detail", args=(album.id,)),
@@ -204,7 +204,7 @@ class AudioAPITestCase(BaseAudioAPITestCase):
         data = {
             "title": "Mans One",
             "position": 1,
-            "album": album.id,
+            "album": str(album.id),
         }
         response = self.drf_client.post(
             path=reverse("audio-api-list"),
@@ -277,7 +277,7 @@ class AudioAPITestCase(BaseAudioAPITestCase):
         data = {
             "title": "Mans first!",
             "position": 1,
-            "album": album.id,
+            "album": str(album.id),
         }
         response = self.drf_client.post(
             path=reverse("audio-api-list"),
