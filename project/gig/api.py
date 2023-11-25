@@ -1,9 +1,10 @@
-from django.http import HttpResponseBadRequest
+from django.http import Http404, HttpResponseBadRequest
 from django.utils import timezone
 from django_elasticsearch_dsl_drf import constants, filter_backends
 from django_elasticsearch_dsl_drf import viewsets as dsl_drf_view_sets
 from django_elasticsearch_dsl_drf.pagination import PageNumberPagination
 from elasticsearch_dsl import Q
+from rest_framework.response import Response
 
 from project.core import permissions
 from project.core.api import mixins as core_mixins
@@ -19,6 +20,22 @@ class GigViewSet(core_viewsets.CustomModelViewSet):
 
     queryset = models.Gig.objects.filter(active=True).order_by("start_date")
     serializer_class = serializers.GigSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Retrieves a Gig.
+
+        An inactive Gig can be returned.
+
+        One example when this is useful is when a Gig
+        room navigates to an inactive Gig.
+        """
+        try:
+            instance = models.Gig.objects.get(id=kwargs["pk"])
+        except (models.Gig.DoesNotExist, KeyError):
+            raise Http404("Gig does not exist.")
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         permissions.is_authenticated(request)

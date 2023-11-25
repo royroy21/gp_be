@@ -24,6 +24,7 @@ class GigSerializer(serializers.ModelSerializer):
     thumbnail = serializers.ImageField(read_only=True)
     is_favorite = serializers.SerializerMethodField()
     replies = serializers.SerializerMethodField()
+    active = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = models.Gig
@@ -42,6 +43,7 @@ class GigSerializer(serializers.ModelSerializer):
             "thumbnail",
             "is_favorite",
             "replies",
+            "active",
         )
 
     @transaction.atomic
@@ -127,6 +129,7 @@ class GigDocumentSerializer(serializers.Serializer):  # noqa
     thumbnail = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
     replies = serializers.SerializerMethodField()
+    active = serializers.BooleanField(read_only=True)
 
     class Meta:
         document = GigDocument
@@ -145,6 +148,7 @@ class GigDocumentSerializer(serializers.Serializer):  # noqa
             "thumbnail",
             "is_favorite",
             "replies",
+            "active",
         )
 
     def get_user(self, document):

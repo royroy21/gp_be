@@ -61,6 +61,7 @@ class GigDocument(Document):
     thumbnail = custom_fields.ThumbnailField()
     replies = fields.IntegerField(attr="replies")
     has_replies = fields.BooleanField(attr="has_replies")
+    active = fields.BooleanField()
 
     class Django:
         model = models.Gig
