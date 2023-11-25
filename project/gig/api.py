@@ -4,6 +4,7 @@ from django_elasticsearch_dsl_drf import constants, filter_backends
 from django_elasticsearch_dsl_drf import viewsets as dsl_drf_view_sets
 from django_elasticsearch_dsl_drf.pagination import PageNumberPagination
 from elasticsearch_dsl import Q
+from rest_framework import status
 from rest_framework.response import Response
 
 from project.core import permissions
@@ -27,8 +28,8 @@ class GigViewSet(core_viewsets.CustomModelViewSet):
 
         An inactive Gig can be returned.
 
-        One example when this is useful is when a Gig
-        room navigates to an inactive Gig.
+        One example when this is useful is when a
+        Gig room navigates to an inactive Gig.
         """
         try:
             instance = models.Gig.objects.get(id=kwargs["pk"])
@@ -50,8 +51,18 @@ class GigViewSet(core_viewsets.CustomModelViewSet):
         return super().partial_update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        permissions.is_owner(request, self.get_object())
-        return super().destroy(request, *args, **kwargs)
+        """
+        Sets Gig to inactive.
+        """
+        # Getting instance like this so a user can always delete
+        # regardless of what's happening in get_queryset().
+        try:
+            instance = models.Gig.objects.get(id=kwargs["pk"])
+        except (models.Gig.DoesNotExist, KeyError):
+            raise Http404("Gig does not exist.")
+        permissions.is_owner(request, instance)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_queryset(self):
         if not self.request.user.is_authenticated:
@@ -149,6 +160,7 @@ class GigDocumentViewSet(
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.exclude("match", active=False)
         if not self.request.user.is_authenticated:
             return queryset.filter("range", **{"start_date": {"gte": "now"}})
 
