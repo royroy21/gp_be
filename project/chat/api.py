@@ -104,10 +104,10 @@ class RoomDocumentViewSet(
         filter_backends.OrderingFilterBackend,
         filter_backends.CompoundSearchFilterBackend,
     ]
-    search_fields = (
-        "members",
-        "gig",
-    )
+    search_fields = {
+        "members": {"fuzziness": "AUTO"},
+        "gig": {"fuzziness": "AUTO"},
+    }
     filter_fields = {
         "members": "members.raw",
         "gig": "gig.raw",

@@ -197,12 +197,12 @@ class UserDocumentViewSet(
         filter_backends.OrderingFilterBackend,
         filter_backends.CompoundSearchFilterBackend,
     ]
-    search_fields = (
-        "username",
-        "country",
-        "bio",
-        "genres",
-    )
+    search_fields = {
+        "username": {"fuzziness": "AUTO"},
+        "country": {"fuzziness": "AUTO"},
+        "bio": {"fuzziness": "AUTO"},
+        "genres": {"fuzziness": "AUTO"},
+    }
     filter_fields = {
         "username": "username.raw",
         "country": "country.raw",

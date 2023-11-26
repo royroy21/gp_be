@@ -418,3 +418,16 @@ class GigElasticSearchAPITestCase(TestCase):
             search_term,
             response.data["results"][0]["title"].lower(),
         )
+
+    @core_tests.with_elasticsearch
+    def test_fuzzy_search_on_genre(self):
+        self.create_gig(user=core_tests.create_user(username="jiggy"))
+        search_term = "dom"
+        response = self.drf_client.get(
+            path=reverse("gig-search-list") + f"?search={search_term}",
+        )
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertIn(
+            self.genre.genre.lower(),
+            response.data["results"][0]["genres"][0]["genre"].lower(),
+        )
