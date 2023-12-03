@@ -40,8 +40,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_serializer(self, instance=None, *args, **kwargs):
         # If no instance, instance is being created.
-        if instance is None:
-            return super().get_serializer(instance, *args, **kwargs)
         if self.request.user == instance:
             return super().get_serializer(instance, *args, **kwargs)
         # Using this serializer so emails are hidden.
