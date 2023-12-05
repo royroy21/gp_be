@@ -4,7 +4,7 @@ from django_elasticsearch_dsl_drf import filter_backends
 from django_elasticsearch_dsl_drf import viewsets as dsl_drf_view_sets
 from django_elasticsearch_dsl_drf.pagination import PageNumberPagination
 from elasticsearch_dsl import Q
-from rest_framework import status, viewsets
+from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -82,11 +82,8 @@ class UserViewSet(viewsets.ModelViewSet):
         token = request.data.get("token")
         active = request.data.get("active")
         if not token or active is None:
-            # TODO - wrong!
-            return Response(
-                {"error": ["Malformed POST data."]},
-                status=400,
-            )
+            raise exceptions.ParseError
+
         query = models.NotificationToken.objects.filter(
             token=token,
             user=request.user,
@@ -125,18 +122,12 @@ class UserViewSet(viewsets.ModelViewSet):
         permissions.is_authenticated(request)
         user_id = request.data.get("id")
         if not user_id:
-            # TODO - wrong!
-            return Response(
-                {"error": ["Malformed POST data."]},
-                status=400,
-            )
+            raise exceptions.ParseError
+
         user = models.User.objects.filter(id=user_id).first()
         if not user:
-            # TODO - wrong!
-            return Response(
-                {"error": ["User not found."]},
-                status=400,
-            )
+            raise exceptions.NotFound
+
         return user
 
     @action(url_path="add-favorite-gig", detail=False, methods=["POST"])
@@ -160,16 +151,12 @@ class UserViewSet(viewsets.ModelViewSet):
         permissions.is_authenticated(request)
         gig_id = request.data.get("id")
         if not gig_id:
-            return Response(
-                {"error": ["Malformed POST data."]},
-                status=400,
-            )
+            raise exceptions.ParseError
+
         gig = gig_models.Gig.objects.filter(id=gig_id).first()
         if not gig:
-            return Response(
-                {"error": ["Gig not found."]},
-                status=400,
-            )
+            raise exceptions.NotFound
+
         return gig
 
 
