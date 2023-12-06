@@ -53,13 +53,13 @@ class Gig(BaseModel):
             self.genres.filter(active=True).values_list("genre", flat=True)
         )
 
-    def replies(self):
-        """
-        Replies count for this gig.
-        Calculated by counting rooms.
+    def country_indexing(self):
+        """Used in Elasticsearch indexing."""
+        if not self.country:
+            return None
+        return f"{self.country.country} {self.country.code}"  # noqa
 
-        This field is used in Elasticsearch indexing.
-        """
+    def replies(self):
         return (
             self.rooms.filter(active=True)  # noqa
             .exclude(messages__isnull=True)

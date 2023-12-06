@@ -29,7 +29,6 @@ dj-database-url==1.0.0
 Django==4.1.2
 django-cors-headers==3.13.0
 django-elasticsearch-dsl==7.3
-django-elasticsearch-dsl-drf==0.22.5
 django-extensions==3.2.1
 django-filter==22.1
 django-nine==0.2.7

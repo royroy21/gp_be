@@ -8,11 +8,8 @@ from rest_framework_simplejwt import serializers as simplejwt_serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from project.audio import models as audio_models
-from project.country import models as country_models
 from project.country import serializers as country_serializers
 from project.custom_user import models
-from project.custom_user.search_indexes.documents.user import UserDocument
-from project.genre import models as genre_models
 from project.genre import serializers as genre_serializers
 from project.image import tasks as image_tasks
 from project.location.fields import LocationField
@@ -230,54 +227,3 @@ class UserSerializerWithSimplifiedToInternalValue(UserSerializerIfNotOwner):
             raise serializers.ValidationError({"User does not exist"})
         except django_exceptions.FieldError:
             raise serializers.ValidationError("Invalid data")
-
-
-class UserDocumentSerializer(serializers.Serializer):  # noqa
-    id = serializers.CharField(read_only=True)
-    username = serializers.CharField(read_only=True)
-    country = serializers.SerializerMethodField()
-    bio = serializers.CharField(read_only=True)
-    genres = serializers.SerializerMethodField()
-    image = serializers.SerializerMethodField()
-    thumbnail = serializers.SerializerMethodField()
-    is_favorite = serializers.SerializerMethodField()
-
-    class Meta:
-        document = UserDocument
-        fields = ["is_favorite"] + user_non_sensitive_fields
-
-    def get_country(self, document):  # noqa
-        """Converting here so to match user serializers."""
-        country = country_models.CountryCode.objects.filter(
-            country=document.country,
-        ).first()
-        if not country:
-            return None
-        return country_serializers.CountrySerializer(country).data
-
-    def get_genres(self, document):  # noqa
-        """Converting here so to match user serializers."""
-        return [
-            genre_serializers.GenreSerializer(
-                genre_models.Genre.objects.get(genre=genre)
-            ).data
-            for genre in document.genres
-        ]
-
-    def get_is_favorite(self, document):
-        user = self.context["request"].user
-        if not user.is_authenticated:
-            return False
-        return user.favorite_users.filter(id=document.id).exists()
-
-    def get_image(self, document):
-        """Converting here to get full image URL with domain."""
-        if not document.image:
-            return None
-        return self.context["request"].build_absolute_uri(document.image)
-
-    def get_thumbnail(self, document):
-        """Converting here to get full thumbnail URL with domain."""
-        if not document.thumbnail:
-            return None
-        return self.context["request"].build_absolute_uri(document.thumbnail)

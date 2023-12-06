@@ -183,6 +183,12 @@ class User(  # type: ignore
             self.genres.filter(active=True).values_list("genre", flat=True)
         )
 
+    def country_indexing(self):
+        """Used in Elasticsearch indexing."""
+        if not self.country:
+            return None
+        return f"{self.country.country} {self.country.code}"  # noqa
+
 
 class NotificationToken(BaseModel):
     """

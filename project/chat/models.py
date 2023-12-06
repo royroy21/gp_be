@@ -47,20 +47,8 @@ class Room(BaseModel):
         if not self.gig:
             return None
 
-        genres = " ".join(
-            list(
-                self.gig.genres.filter(active=True).values_list(  # noqa
-                    "genre",
-                    flat=True,
-                )
-            )
-        )
         # Putting all gig data into a string for search purposes.
-        return (
-            f"{self.gig.title} "  # noqa
-            f"{self.gig.description} "  # noqa
-            f"{self.gig.location} {genres}"  # noqa
-        )
+        return f"{self.gig.title} {self.gig.location}"  # noqa
 
     def last_message_date_indexing(self):
         """Used in Elasticsearch indexing."""
@@ -68,8 +56,11 @@ class Room(BaseModel):
             return None
 
         return (
-            self.messages.all().order_by("date_created").last().date_created
-        )  # noqa
+            self.messages.all()
+            .order_by("date_created")
+            .last()
+            .date_created  # noqa
+        )
 
     def has_messages_indexing(self):
         """Used in Elasticsearch indexing."""

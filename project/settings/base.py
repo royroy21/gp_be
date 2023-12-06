@@ -51,7 +51,6 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt",
     "whitenoise.runserver_nostatic",
     "django_elasticsearch_dsl",
-    "django_elasticsearch_dsl_drf",
 ]
 
 INSTALLED_APPS = (
@@ -211,6 +210,11 @@ ELASTICSEARCH_DSL = {
         "hosts": "elasticsearch:9200",
     },
 }
+# Using a high number here as DRF will be handling pagination
+ELASTICSEARCH_PAGINATION_LIMIT = 1000
+
+# Settings this to force as we're using our own signals to update indexes
+ELASTICSEARCH_DSL_AUTO_REFRESH = False
 
 # Name of the Elasticsearch index
 ELASTICSEARCH_INDEX_NAMES = {

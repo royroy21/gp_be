@@ -236,7 +236,7 @@ class GigElasticSearchAPITestCase(TestCase):
         # User created gigs should not appear in their searches.
         self.create_gig()
         response = self.drf_client.get(
-            path=reverse("gig-search-list") + "?search=doo",
+            path=reverse("gig-api-list") + "search/?q=doo",
         )
         self.assertEqual(len(response.data["results"]), 0)
 
@@ -246,7 +246,7 @@ class GigElasticSearchAPITestCase(TestCase):
         username = "jiggy"
         gig = self.create_gig(user=core_tests.create_user(username=username))
         response = self.drf_client.get(
-            path=reverse("gig-search-list") + f"?search={username}",
+            path=reverse("gig-api-list") + f"search/?q={username}",
         )
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["id"], str(gig.id))
@@ -256,21 +256,11 @@ class GigElasticSearchAPITestCase(TestCase):
         )
 
     @core_tests.with_elasticsearch
-    def test_search_for_gig_by_providing_incomplete_username(self):
-        # This should not hit as only providing exact usernames should work.
-        username = "jiggy"
-        self.create_gig(user=core_tests.create_user(username=username))
-        response = self.drf_client.get(
-            path=reverse("gig-search-list") + f"?search={username[:3]}",
-        )
-        self.assertEqual(len(response.data["results"]), 0)
-
-    @core_tests.with_elasticsearch
     def test_search_on_title(self):
         self.create_gig(user=core_tests.create_user(username="jiggy"))
         search_term = "feelings"
         response = self.drf_client.get(
-            path=reverse("gig-search-list") + f"?search={search_term}",
+            path=reverse("gig-api-list") + f"search/?q={search_term}",
         )
         self.assertEqual(len(response.data["results"]), 1)
         self.assertIn(
@@ -283,7 +273,7 @@ class GigElasticSearchAPITestCase(TestCase):
         self.create_gig(user=core_tests.create_user(username="jiggy"))
         search_term = "doom"
         response = self.drf_client.get(
-            path=reverse("gig-search-list") + f"?search={search_term}",
+            path=reverse("gig-api-list") + f"search/?q={search_term}",
         )
         self.assertEqual(len(response.data["results"]), 1)
         self.assertIn(
@@ -299,7 +289,7 @@ class GigElasticSearchAPITestCase(TestCase):
             start_date=timezone.now() - timedelta(hours=1),
         )
         response = self.drf_client.get(
-            path=reverse("gig-search-list") + "?search=doom",
+            path=reverse("gig-api-list") + "search/?q=doom",
         )
         self.assertEqual(len(response.data["results"]), 0)
 
@@ -310,7 +300,7 @@ class GigElasticSearchAPITestCase(TestCase):
         )
         search_term = "brixton"
         response = self.drf_client.get(
-            path=reverse("gig-search-list") + f"?search={search_term}",
+            path=reverse("gig-api-list") + f"search/?q={search_term}",
         )
         self.assertEqual(len(response.data["results"]), 1)
         self.assertIn(
@@ -329,7 +319,7 @@ class GigElasticSearchAPITestCase(TestCase):
             user=user,
         )
         response = self.drf_client.get(
-            path=reverse("gig-search-list") + "?has_spare_ticket=true",
+            path=reverse("gig-api-list") + "search/?q=&has_spare_ticket=true",
         )
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["id"], str(gig.id))
@@ -352,8 +342,8 @@ class GigElasticSearchAPITestCase(TestCase):
         date = timezone.now() + timedelta(days=4)
         response = self.drf_client.get(
             path=(
-                reverse("gig-search-list")
-                + f"?start_date__gt={date.date().isoformat()}"
+                reverse("gig-api-list")
+                + f"search/?q=&start_date__gte={date.date().isoformat()}"
             ),
         )
         self.assertEqual(len(response.data["results"]), 1)
@@ -372,7 +362,7 @@ class GigElasticSearchAPITestCase(TestCase):
             user=user, start_date=timezone.now() + timedelta(days=6)
         )
         response = self.drf_client.get(
-            path=reverse("gig-search-list") + "?order_by=start_date",
+            path=reverse("gig-api-list") + "?order_by=start_date",
         )
         self.assertEqual(len(response.data["results"]), 3)
         self.assertEqual(response.data["results"][0]["id"], str(gig_first.id))
@@ -385,7 +375,7 @@ class GigElasticSearchAPITestCase(TestCase):
         self.create_gig(user=other_user)
         my_gig = self.create_gig()
         response = self.drf_client.get(
-            path=reverse("gig-search-list") + "?my_gigs=true",
+            path=reverse("gig-api-list") + "?my_gigs=true",
         )
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["id"], str(my_gig.id))
@@ -397,7 +387,7 @@ class GigElasticSearchAPITestCase(TestCase):
 
         search_term = "feelings"
         response = self.drf_client.get(
-            path=reverse("gig-search-list") + f"?search={search_term}",
+            path=reverse("gig-api-list") + f"search/?q={search_term}",
         )
         self.assertEqual(len(response.data["results"]), 1)
         self.assertIn(
@@ -411,7 +401,7 @@ class GigElasticSearchAPITestCase(TestCase):
             content_type="application/json",
         )
         response = self.drf_client.get(
-            path=reverse("gig-search-list") + f"?search={search_term}",
+            path=reverse("gig-api-list") + f"search/?q={search_term}",
         )
         self.assertEqual(len(response.data["results"]), 1)
         self.assertIn(
@@ -424,7 +414,7 @@ class GigElasticSearchAPITestCase(TestCase):
         self.create_gig(user=core_tests.create_user(username="jiggy"))
         search_term = "dom"
         response = self.drf_client.get(
-            path=reverse("gig-search-list") + f"?search={search_term}",
+            path=reverse("gig-api-list") + f"search/?q={search_term}",
         )
         self.assertEqual(len(response.data["results"]), 1)
         self.assertIn(
