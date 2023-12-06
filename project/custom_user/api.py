@@ -1,15 +1,12 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.http import HttpResponseBadRequest
-from django_elasticsearch_dsl_drf import filter_backends
-from django_elasticsearch_dsl_drf import viewsets as dsl_drf_view_sets
-from django_elasticsearch_dsl_drf.pagination import PageNumberPagination
 from elasticsearch_dsl import Q
 from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from project.core import permissions
-from project.core.api import mixins as core_mixins
+from project.core.search.queries import wildcard_query_for_words
 from project.custom_user import models, serializers
 from project.custom_user.search_indexes.documents.user import UserDocument
 from project.gig import models as gig_models
@@ -18,7 +15,7 @@ User = get_user_model()
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all().order_by("date_joined")
+    queryset = User.objects.filter(is_active=True).order_by("username")
     serializer_class = serializers.UserSerializer
     serializer_class_if_not_owner = serializers.UserSerializerIfNotOwner
 
@@ -55,6 +52,9 @@ class UserViewSet(viewsets.ModelViewSet):
         kwargs["partial"] = True
         return super().update(request, *args, **kwargs)
 
+    def destroy(self, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
     def get_queryset(self):
         if (
             self.request.user.is_authenticated
@@ -64,8 +64,62 @@ class UserViewSet(viewsets.ModelViewSet):
             return self.queryset.exclude(id=self.request.user.id)
         return self.queryset
 
-    def destroy(self, *args, **kwargs):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    @action(detail=False, methods=["GET"])
+    def search(self, request):
+        search = UserDocument.search().query(Q("term", is_active=True))
+
+        query = request.query_params.get("q")
+        words = query.split(" ")
+        username_queries = wildcard_query_for_words("username", words)
+        country_queries = wildcard_query_for_words("country", words)
+        bio_queries = wildcard_query_for_words("bio", words)
+        genres_queries = wildcard_query_for_words("genres", words)
+        combined_queries = (
+            username_queries + country_queries + bio_queries + genres_queries
+        )
+        # This bit looks odd. Basically this combines queries.
+        combined_query = Q("bool", should=combined_queries)
+        search = search.query(combined_query)
+
+        # As `is_favorite` is a computed field determined at the time
+        # of the API call we get favorite users from the requesting
+        # user then perform a fresh elastic search query here.
+        if request.query_params.get("is_favorite"):
+            favorite_users_ids = request.user.favorite_users.all().values_list(
+                "id", flat=True,
+            )
+            favorite_users_query = Q(
+                "terms",
+                id__raw=[str(_id) for _id in favorite_users_ids],
+            )
+            search = search.query(favorite_users_query)
+
+        return self.return_parsed_search_response(request, search)
+
+    def return_parsed_search_response(self, request, search):
+        """
+        Takes an elasticsearch query then returns
+        a serialized and paginated response.
+        """
+        # fmt: off
+        search = search[0:settings.ELASTICSEARCH_PAGINATION_LIMIT]
+        # fmt: on
+        queryset = (
+            User.objects.filter(id__in=[record.id for record in search])
+            .exclude(username=request.user.username)
+            .order_by("username")
+        )
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serialized = self.get_serializer_if_not_owner(
+            queryset,
+            many=True,
+        )
+        return Response(serialized.data)
 
     @action(detail=False, methods=["GET"])
     def me(self, request):
@@ -158,86 +212,3 @@ class UserViewSet(viewsets.ModelViewSet):
             raise exceptions.NotFound
 
         return gig
-
-
-class UserDocumentViewSet(
-    core_mixins.ListModelMixinWithSerializerContext,
-    dsl_drf_view_sets.BaseDocumentViewSet,
-):
-    """
-    Read only User API.
-
-    This API uses elastic search.
-
-    An example URL query could be:
-    search/user/?search=fred
-    """
-
-    document = UserDocument
-    serializer_class = serializers.UserDocumentSerializer
-    pagination_class = PageNumberPagination
-    lookup_field = "id"
-    filter_backends = [
-        filter_backends.FilteringFilterBackend,
-        filter_backends.OrderingFilterBackend,
-        filter_backends.CompoundSearchFilterBackend,
-    ]
-    search_fields = {
-        "username": {"fuzziness": "AUTO"},
-        "country": {"fuzziness": "AUTO"},
-        "bio": {"fuzziness": "AUTO"},
-        "genres": {"fuzziness": "AUTO"},
-    }
-    filter_fields = {
-        "username": "username.raw",
-        "country": "country.raw",
-    }
-    ordering_fields = {
-        "username": "username",
-    }
-    ordering = ("username",)
-
-    def get_queryset(self):
-        wildcard_query = self.request.query_params.get("search_using_wildcard")
-        if wildcard_query:
-            queryset = self.get_queryset_using_wildcard(wildcard_query)
-        else:
-            queryset = (
-                super()
-                .get_queryset()
-                .exclude("match", username=self.request.user.username)
-            )
-
-        # As `is_favorite` is a computed field determined at the time
-        # of the API call we get favorite users from the requesting
-        # user then perform a fresh elastic search query here.
-        if self.request.query_params.get("is_favorite"):  # noqa
-            favorite_users_ids = (
-                self.request.user.favorite_users.filter(  # noqa
-                    is_active=True,
-                ).values_list("id", flat=True)
-            )
-            favorite_users_query = Q(
-                "terms",
-                id__raw=[str(_id) for _id in favorite_users_ids],
-            )
-            return queryset.query(favorite_users_query)
-
-        return queryset
-
-    def get_queryset_using_wildcard(self, search_query):
-        """
-        Doing this as django_elasticsearch_dsl_drf
-        doesn't seem to like wildcards :/
-
-        Using wildcard on username field only.
-        """
-        wildcard_query = Q("wildcard", username=search_query)
-        queryset = UserDocument.search().query(wildcard_query)
-        queryset.exclude(username=self.request.user.username)
-        return queryset
-
-    def retrieve(self, request, *args, **kwargs):
-        return HttpResponseBadRequest(
-            "The API route should be used for detail views.",
-        )

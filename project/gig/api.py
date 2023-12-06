@@ -1,15 +1,14 @@
-from django.http import Http404, HttpResponseBadRequest
+from django.conf import settings
+from django.http import Http404
 from django.utils import timezone
-from django_elasticsearch_dsl_drf import constants, filter_backends
-from django_elasticsearch_dsl_drf import viewsets as dsl_drf_view_sets
-from django_elasticsearch_dsl_drf.pagination import PageNumberPagination
 from elasticsearch_dsl import Q
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from project.core import permissions
-from project.core.api import mixins as core_mixins
 from project.core.api import viewsets as core_viewsets
+from project.core.search.queries import wildcard_query_for_words
 from project.gig import models, serializers
 from project.gig.search_indexes.documents.gig import GigDocument
 
@@ -85,118 +84,98 @@ class GigViewSet(core_viewsets.CustomModelViewSet):
             start_date__lte=timezone.now()
         )
 
+    @action(detail=False, methods=["GET"])
+    def search(self, request):
+        search = GigDocument.search().query(Q("term", active=True))
 
-class GigDocumentViewSet(
-    core_mixins.ListModelMixinWithSerializerContext,
-    dsl_drf_view_sets.BaseDocumentViewSet,
-):
-    """
-    Read only Gig API.
+        if not request.query_params.get("past_gigs"):
+            start_date__gte = request.query_params.get("start_date__gte")
+            search = search.filter(
+                "range",
+                **{"start_date": {"gte": start_date__gte or "now"}},
+            )
 
-    This API uses elastic search.
+        query = request.query_params.get("q", "")
+        words = query.split(" ")
 
-    An example URL query could be:
-    search/gig/?search=doo
+        username_queries = wildcard_query_for_words("user", words)
+        title_queries = wildcard_query_for_words("title", words)
+        description_queries = wildcard_query_for_words("description", words)
+        location_queries = wildcard_query_for_words("location", words)
+        country_queries = wildcard_query_for_words("country", words)
+        genres_queries = wildcard_query_for_words("genres", words)
+        combined_queries = (
+            username_queries
+            + title_queries
+            + description_queries
+            + location_queries
+            + country_queries
+            + genres_queries
+        )
+        # This bit looks odd. Basically this combines queries.
+        combined_query = Q("bool", should=combined_queries)
+        search = search.query(combined_query)
 
-    An example URL query using filtering on start_date and has_spare_ticket:
-    search/gig/?search=doom&start_date__gt=2023-05-01&has_spare_ticket=true
+        if request.query_params.get("has_spare_ticket"):
+            search = search.query(Q("term", has_spare_ticket=True))
 
-    An example URL query using order_by
-    search/gig/?search=doom&start_date__gt=2023-05-01&order_by_start_date
-    """
-
-    document = GigDocument
-    serializer_class = serializers.GigDocumentSerializer
-    pagination_class = PageNumberPagination
-    lookup_field = "id"
-    filter_backends = [
-        filter_backends.FilteringFilterBackend,
-        filter_backends.OrderingFilterBackend,
-        filter_backends.CompoundSearchFilterBackend,
-    ]
-    search_fields = {
-        "user": {"fuzziness": "AUTO"},
-        "title": {"fuzziness": "AUTO"},
-        "location": {"fuzziness": "AUTO"},
-        "country": {"fuzziness": "AUTO"},
-        "description": {"fuzziness": "AUTO"},
-        "genres": {"fuzziness": "AUTO"},
-    }
-    filter_fields = {
-        "title": "title.raw",
-        "location": "location.raw",
-        "has_spare_ticket": {
-            "field": "has_spare_ticket",
-            "lookups": [
-                constants.TRUE_VALUES,
-            ],
-        },
-        "has_replies": {
-            "field": "has_replies",
-            "lookups": [
-                constants.TRUE_VALUES,
-            ],
-        },
-        "start_date": {
-            "field": "start_date",
-            "lookups": [
-                constants.LOOKUP_FILTER_RANGE,
-                constants.LOOKUP_QUERY_IN,
-                constants.LOOKUP_QUERY_GT,
-                constants.LOOKUP_QUERY_GTE,
-            ],
-        },
-    }
-    ordering_fields = {
-        "start_date": "start_date",
-        "title": "title.raw",
-        "location": "location.raw",
-    }
-    ordering = (
-        "start_date",
-        "title",
-        "location",
-    )
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        queryset = queryset.exclude("match", active=False)
-        if not self.request.user.is_authenticated:
-            return queryset.filter("range", **{"start_date": {"gte": "now"}})
+        if request.query_params.get("has_replies"):
+            search = search.query(Q("term", has_replies=True))
 
         # As `is_favorite` is a computed field determined at the time
         # of the API call we get favorite gigs from the requesting
         # user then perform a fresh elastic search query here.
-        if self.request.query_params.get("is_favorite"):  # noqa
-            favorite_gigs_ids = self.request.user.favorite_gigs.filter(  # noqa
+        if request.query_params.get("is_favorite"):
+            favorite_gigs_ids = request.user.favorite_gigs.filter(
                 active=True,
             ).values_list("id", flat=True)
             favorite_gigs_query = Q(
                 "terms", id__raw=[str(_id) for _id in favorite_gigs_ids]
             )
-            return queryset.query(favorite_gigs_query).sort("start_date")
+            search = search.query(favorite_gigs_query)
 
-        my_gigs = self.request.query_params.get("my_gigs")
+        my_gigs = request.query_params.get("my_gigs")
         if my_gigs:
-            past_gigs = self.request.query_params.get("past_gigs")
-            queryset = queryset.filter(
+            search = search.filter(
                 "match",
-                user=self.request.user.username,
+                user=request.user.username,
             )
-            if past_gigs:
-                return queryset.sort("start_date")
-            else:
-                return queryset.filter(
-                    "range",
-                    **{"start_date": {"gte": "now"}},
-                ).sort("start_date")
 
-        queryset = queryset.exclude("match", user=self.request.user.username)
-        return queryset.filter("range", **{"start_date": {"gte": "now"}}).sort(
-            "start_date"
+        return self.return_parsed_search_response(
+            request,
+            search,
+            exclude_requesting_user=not my_gigs,
         )
 
-    def retrieve(self, request, *args, **kwargs):
-        return HttpResponseBadRequest(
-            "The API route should be used for detail views.",
+    def return_parsed_search_response(
+        self,
+        request,
+        search,
+        exclude_requesting_user=False,
+    ):
+        """
+        Takes an elasticsearch query then returns
+        a serialized and paginated response.
+        """
+        # fmt: off
+        search = search[0:settings.ELASTICSEARCH_PAGINATION_LIMIT]
+        # fmt: on
+
+        queryset = models.Gig.objects.filter(
+            id__in=[record.id for record in search]
+        ).order_by("start_date")
+        if exclude_requesting_user:
+            queryset = queryset.exclude(
+                user__username=request.user.username,
+            )
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serialized = self.get_serializer(
+            queryset,
+            many=True,
         )
+        return Response(serialized.data)

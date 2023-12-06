@@ -1,10 +1,8 @@
 from django.conf import settings
 from django_elasticsearch_dsl import Document, Index, fields
-from django_elasticsearch_dsl_drf.compat import StringField
 from elasticsearch_dsl import Keyword
 
 from project.core.search import anaylizers
-from project.core.search import fields as custom_fields
 from project.gig import models
 
 INDEX = Index(settings.ELASTICSEARCH_INDEX_NAMES[__name__])  # type: ignore
@@ -13,53 +11,49 @@ INDEX.settings(number_of_shards=1, number_of_replicas=1)
 
 @INDEX.doc_type
 class GigDocument(Document):
-    id = StringField(attr="id_as_string", fields={"raw": Keyword()})
-    user = StringField(
+    id = fields.TextField(attr="id_as_string", fields={"raw": Keyword()})
+    user = fields.TextField(
         attr="user.username",
         analyzer=anaylizers.html_strip,
         fields={
-            "raw": StringField(analyzer="keyword"),
+            "raw": fields.TextField(analyzer="keyword"),
         },
     )
-    title = StringField(
+    title = fields.TextField(
         analyzer=anaylizers.html_strip,
         fields={
-            "raw": StringField(analyzer="keyword"),
+            "raw": fields.TextField(analyzer="keyword"),
         },
     )
-    description = StringField(
+    description = fields.TextField(
         analyzer=anaylizers.html_strip,
         fields={
-            "raw": StringField(analyzer="keyword"),
+            "raw": fields.TextField(analyzer="keyword"),
         },
     )
-    location = StringField(
+    location = fields.TextField(
         analyzer=anaylizers.html_strip,
         fields={
-            "raw": StringField(analyzer="keyword"),
+            "raw": fields.TextField(analyzer="keyword"),
         },
     )
-    country = StringField(
-        attr="country.country",
+    country = fields.TextField(
+        attr="country_indexing",
         analyzer=anaylizers.html_strip,
         fields={
-            "raw": StringField(analyzer="keyword"),
+            "raw": fields.TextField(analyzer="keyword"),
         },
     )
-    genres = StringField(
+    genres = fields.TextField(
         attr="genres_indexing",
         analyzer=anaylizers.html_strip,
         fields={
-            "raw": StringField(analyzer="keyword", multi=True),
+            "raw": fields.TextField(analyzer="keyword", multi=True),
         },
         multi=True,
     )
     has_spare_ticket = fields.BooleanField()
     start_date = fields.DateField()
-    end_date = fields.DateField()
-    image = custom_fields.ImageField()
-    thumbnail = custom_fields.ThumbnailField()
-    replies = fields.IntegerField(attr="replies")
     has_replies = fields.BooleanField(attr="has_replies")
     active = fields.BooleanField()
 

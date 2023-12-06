@@ -1,15 +1,16 @@
+from django.conf import settings
 from django.db.models import Max
-from django.http import HttpResponseBadRequest
-from django_elasticsearch_dsl_drf import filter_backends
-from django_elasticsearch_dsl_drf import viewsets as dsl_drf_view_sets
-from django_elasticsearch_dsl_drf.pagination import PageNumberPagination
+from elasticsearch_dsl import Q
 from rest_framework import exceptions, mixins
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from project.chat import models, serializers
 from project.chat.search_indexes.documents.room import RoomDocument
 from project.core import permissions
 from project.core.api import mixins as core_mixins
+from project.core.search.queries import wildcard_query_for_words
 
 
 class MessageViewSet(mixins.ListModelMixin, GenericViewSet):
@@ -81,51 +82,49 @@ class RoomViewSet(
         permissions.is_member(request, self.get_object())
         return super().retrieve(request, *args, **kwargs)
 
+    @action(detail=False, methods=["GET"])
+    def search(self, request):
+        search = RoomDocument.search().query(Q("term", active=True))
 
-class RoomDocumentViewSet(
-    core_mixins.ListModelMixinWithSerializerContext,
-    dsl_drf_view_sets.BaseDocumentViewSet,
-):
-    """
-    Read only Room API.
+        query = request.query_params.get("q")
+        words = query.split(" ")
 
-    This API uses elastic search.
+        username_queries = wildcard_query_for_words("user", words)
+        members_queries = wildcard_query_for_words("members", words)
+        gig_queries = wildcard_query_for_words("gig", words)
+        combined_queries = username_queries + members_queries + gig_queries
+        # This bit looks odd. Basically this combines queries.
+        combined_query = Q("bool", should=combined_queries)
+        search = search.query(combined_query)
+        search = search.query(Q("term", has_messages=True))
 
-    An example URL query could be:
-    search/room/?search=fred
-    """
+        return self.return_parsed_search_response(search)
 
-    document = RoomDocument
-    serializer_class = serializers.RoomDocumentSerializer
-    pagination_class = PageNumberPagination
-    lookup_field = "id"
-    filter_backends = [
-        filter_backends.FilteringFilterBackend,
-        filter_backends.OrderingFilterBackend,
-        filter_backends.CompoundSearchFilterBackend,
-    ]
-    search_fields = {
-        "members": {"fuzziness": "AUTO"},
-        "gig": {"fuzziness": "AUTO"},
-    }
-    filter_fields = {
-        "members": "members.raw",
-        "gig": "gig.raw",
-    }
-    ordering_fields = {
-        "last_message_date": "last_message_date",
-    }
-
-    def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .filter("match", members=self.request.user.username)
-            .filter("match", has_messages=True)
-            .sort("-last_message_date")
+    def return_parsed_search_response(self, search):
+        """
+        Takes an elasticsearch query then returns
+        a serialized and paginated response.
+        """
+        # fmt: off
+        search = search[0:settings.ELASTICSEARCH_PAGINATION_LIMIT]
+        # fmt: on
+        queryset = (
+            models.Room.objects.filter(
+                id__in=[record.id for record in search],
+                members=self.request.user,
+            )
+            .annotate(last_message_date=Max("messages__date_created"))
+            .order_by("-last_message_date")
+            .exclude(messages__isnull=True)
         )
 
-    def retrieve(self, request, *args, **kwargs):
-        return HttpResponseBadRequest(
-            "The API route should be used for detail views.",
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serialized = self.get_serializer(
+            queryset,
+            many=True,
         )
+        return Response(serialized.data)

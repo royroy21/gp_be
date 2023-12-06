@@ -1,6 +1,5 @@
 from django.conf import settings
 from django_elasticsearch_dsl import Document, Index, fields
-from django_elasticsearch_dsl_drf.compat import StringField
 from elasticsearch_dsl import Keyword
 
 from project.chat import models
@@ -14,31 +13,32 @@ INDEX.settings(number_of_shards=1, number_of_replicas=1)
 
 @INDEX.doc_type
 class RoomDocument(Document):
-    id = StringField(attr="id_as_string", fields={"raw": Keyword()})
-    user = StringField(
+    id = fields.TextField(attr="id_as_string", fields={"raw": Keyword()})
+    user = fields.TextField(
         attr="user.username",
         analyzer=anaylizers.html_strip,
         fields={
-            "raw": StringField(analyzer="keyword"),
+            "raw": fields.TextField(analyzer="keyword"),
         },
     )
-    members = StringField(
+    members = fields.TextField(
         attr="members_indexing",
         analyzer=anaylizers.html_strip,
         fields={
-            "raw": StringField(analyzer="keyword", multi=True),
+            "raw": fields.TextField(analyzer="keyword", multi=True),
         },
         multi=True,
     )
-    gig = StringField(
+    gig = fields.TextField(
         attr="gig_indexing",
         analyzer=anaylizers.html_strip,
         fields={
-            "raw": StringField(analyzer="keyword"),
+            "raw": fields.TextField(analyzer="keyword"),
         },
     )
     last_message_date = fields.DateField(attr="last_message_date_indexing")
     has_messages = fields.BooleanField(attr="has_messages_indexing")
+    active = fields.BooleanField()
 
     class Django:
         model = models.Room

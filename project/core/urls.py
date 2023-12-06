@@ -37,27 +37,9 @@ api_router.register(r"audio", audio_api.AudioViewSet, basename="audio-api")
 api_router.register(r"room", chat_api.RoomViewSet, basename="room-api")
 api_router.register(r"gig", gig_api.GigViewSet, basename="gig-api")
 
-search_router = DefaultRouter()
-search_router.register(
-    r"room",
-    chat_api.RoomDocumentViewSet,
-    basename="room-search",
-)
-search_router.register(
-    r"gig",
-    gig_api.GigDocumentViewSet,
-    basename="gig-search",
-)
-search_router.register(
-    r"user",
-    user_api.UserDocumentViewSet,
-    basename="user-search",
-)
-
 urlpatterns = [
     path("api/", include(api_router.urls)),
     path("api/country/", country_api.get_country),
-    path("search/", include(search_router.urls)),
     path("search/country/suggest/", country_api.suggest_country),
     path("search/genre/suggest/", genre_api.suggest_genre),
     path("admin/", admin.site.urls),
