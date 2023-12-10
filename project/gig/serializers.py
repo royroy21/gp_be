@@ -21,6 +21,7 @@ class GigSerializer(serializers.ModelSerializer):
     thumbnail = serializers.ImageField(read_only=True)
     is_favorite = serializers.SerializerMethodField()
     replies = serializers.SerializerMethodField()
+    is_past_gig = serializers.SerializerMethodField()
     active = serializers.BooleanField(read_only=True)
 
     class Meta:
@@ -40,6 +41,7 @@ class GigSerializer(serializers.ModelSerializer):
             "thumbnail",
             "is_favorite",
             "replies",
+            "is_past_gig",
             "active",
         )
 
@@ -95,6 +97,9 @@ class GigSerializer(serializers.ModelSerializer):
 
     def get_replies(self, instance):
         return instance.replies()
+
+    def get_is_past_gig(self, instance):
+        return instance.is_past_gig
 
 
 class GigSerializerWithSimplifiedToInternalValue(GigSerializer):

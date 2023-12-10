@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 from project.core.models import BaseModel
 
@@ -72,3 +73,7 @@ class Gig(BaseModel):
             .exclude(messages__isnull=True)
             .exists()
         )
+
+    @property
+    def is_past_gig(self):
+        return self.start_date < timezone.now()
