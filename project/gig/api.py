@@ -65,10 +65,20 @@ class GigViewSet(core_viewsets.CustomModelViewSet):
 
     def get_queryset(self):
         if not self.request.user.is_authenticated:
+            user_id = self.request.query_params.get("user_id")  # noqa
+            if user_id:
+                return self.queryset.filter(user__id=user_id).exclude(
+                    start_date__lte=timezone.now(),
+                )
             return self.queryset.exclude(start_date__lte=timezone.now())
 
-        my_gigs = self.request.query_params.get("my_gigs")
-        if my_gigs:
+        user_id = self.request.query_params.get("user_id")  # noqa
+        if user_id:
+            return self.queryset.filter(user__id=user_id).exclude(
+                start_date__lte=timezone.now(),
+            )
+
+        if self.request.query_params.get("my_gigs"):  # noqa
             return self.queryset.filter(user=self.request.user).exclude(
                 start_date__lte=timezone.now(),
             )
