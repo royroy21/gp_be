@@ -39,6 +39,7 @@ class UserDocument(Document):
         },
         multi=True,
     )
+    has_active_gigs = fields.BooleanField(attr="has_active_gigs")
     is_active = fields.BooleanField()
 
     class Django:

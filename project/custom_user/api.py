@@ -81,12 +81,16 @@ class UserViewSet(viewsets.ModelViewSet):
         combined_query = Q("bool", should=combined_queries)
         search = search.query(combined_query)
 
+        if request.query_params.get("has_active_gigs"):
+            search = search.query(Q("term", has_active_gigs=True))
+
         # As `is_favorite` is a computed field determined at the time
         # of the API call we get favorite users from the requesting
         # user then perform a fresh elastic search query here.
         if request.query_params.get("is_favorite"):
             favorite_users_ids = request.user.favorite_users.all().values_list(
-                "id", flat=True,
+                "id",
+                flat=True,
             )
             favorite_users_query = Q(
                 "terms",

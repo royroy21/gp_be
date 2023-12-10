@@ -189,6 +189,17 @@ class User(  # type: ignore
             return None
         return f"{self.country.country} {self.country.code}"  # noqa
 
+    def number_of_active_gigs(self):
+        return self.gigs.exclude(  # noqa
+            start_date__lte=timezone.now(),
+        ).count()
+
+    def has_active_gigs(self):
+        """Used in Elasticsearch indexing."""
+        return self.gigs.exclude(  # noqa
+            start_date__lte=timezone.now(),
+        ).exists()
+
 
 class NotificationToken(BaseModel):
     """

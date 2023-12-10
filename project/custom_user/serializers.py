@@ -29,6 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
     location = LocationField()
     country = country_serializers.CountrySerializer()
     genres = genre_serializers.GenreSerializer(many=True)
+    number_of_active_gigs = serializers.SerializerMethodField()
     image = serializers.ImageField(required=False, allow_null=True)
     thumbnail = serializers.ImageField(read_only=True)
 
@@ -46,6 +47,7 @@ class UserSerializer(serializers.ModelSerializer):
             "theme",
             "units",
             "preferred_units",
+            "number_of_active_gigs",
             "image",
             "thumbnail",
         ]
@@ -85,6 +87,9 @@ class UserSerializer(serializers.ModelSerializer):
             data_copy["thumbnail"] = None
 
         return data_copy
+
+    def get_number_of_active_gigs(self, instance):
+        return instance.number_of_active_gigs()
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
