@@ -122,7 +122,6 @@ class GigViewSet(core_viewsets.CustomModelViewSet):
             + country_queries
             + genres_queries
         )
-        # This bit looks odd. Basically this combines queries.
         combined_query = Q("bool", should=combined_queries)
         search = search.query(combined_query)
 

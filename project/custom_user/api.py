@@ -77,7 +77,6 @@ class UserViewSet(viewsets.ModelViewSet):
         combined_queries = (
             username_queries + country_queries + bio_queries + genres_queries
         )
-        # This bit looks odd. Basically this combines queries.
         combined_query = Q("bool", should=combined_queries)
         search = search.query(combined_query)
 

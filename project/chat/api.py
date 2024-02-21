@@ -93,7 +93,6 @@ class RoomViewSet(
         members_queries = wildcard_query_for_words("members", words)
         gig_queries = wildcard_query_for_words("gig", words)
         combined_queries = username_queries + members_queries + gig_queries
-        # This bit looks odd. Basically this combines queries.
         combined_query = Q("bool", should=combined_queries)
         search = search.query(combined_query)
         search = search.query(Q("term", has_messages=True))
