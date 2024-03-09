@@ -80,16 +80,30 @@ class ExistingRoomConsumer(AsyncWebsocketConsumer):
         )
         return message.id
 
+    @database_sync_to_async
+    def update_room_ids_with_unread_messages(self, exclude_username):
+        """
+        Indicates to users that they have new messages for this room.
+        """
+        members = self.room.members.exclude(
+            username=exclude_username["username"]
+        )
+        for member in members:
+            member.add_room_id_with_unread_messages(str(self.room.id))
+            member.save()
+
     async def chat_message(self, event):
         """
         Receives message from room group.
         Broadcasts message via websocket.
         """
+        user = event["user"]
+        await self.update_room_ids_with_unread_messages(user)
         await self.send(
             text_data=json.dumps(
                 {
                     "room": str(self.room.id),
-                    "user": event["user"],
+                    "user": user,
                     "id": str(event["message_id"]),
                     "message": event["message"],
                 }

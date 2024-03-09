@@ -165,6 +165,8 @@ class User(  # type: ignore
         null=True,
     )
 
+    room_ids_with_unread_messages = models.JSONField(default=[])
+
     def id_as_string(self):
         """Used in elasticsearch indexing."""
         return str(self.id)
@@ -207,6 +209,15 @@ class User(  # type: ignore
             )
             .exists()
         )
+
+    def add_room_id_with_unread_messages(self, new_room_id):
+        room_ids = self.room_ids_with_unread_messages
+        if new_room_id in room_ids:
+            return
+
+        room_ids.append(new_room_id)
+        self.room_ids_with_unread_messages = room_ids
+        self.save()
 
 
 class NotificationToken(BaseModel):

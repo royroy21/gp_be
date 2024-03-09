@@ -127,3 +127,22 @@ class RoomViewSet(
             many=True,
         )
         return Response(serialized.data)
+
+    @action(detail=False, methods=["GET"])
+    def rooms_with_unread_messages(self, request):
+        """
+        Returns rooms with unread messages.
+        Sets unread messages to read.
+        """
+        user = request.user
+        if not user.is_authenticated:
+            raise exceptions.PermissionDenied
+
+        room_ids = user.room_ids_with_unread_messages
+
+        # Clearing rooms here as is assumed
+        # messages have now been read client side.
+        user.room_ids_with_unread_messages = []
+        user.save()
+
+        return Response({"rooms": room_ids})
