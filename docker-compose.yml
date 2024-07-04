@@ -18,42 +18,12 @@ services:
       - database-data:/data
     environment:
       - POSTGRES_PASSWD=postgres
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
-    environment:
-      - node.name=elasticsearch
-      - cluster.name=docker-cluster
-      - discovery.seed_hosts=elasticsearch-prod
-      - cluster.initial_master_nodes=elasticsearch
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    ports:
-      - "9200:9200"
-  elasticsearch_test:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
-    environment:
-      - node.name=elasticsearch-test
-      - cluster.name=docker-cluster-test
-      - discovery.seed_hosts=elasticsearch-test
-      - cluster.initial_master_nodes=elasticsearch-test
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    ports:
-      - "9201:9200"
   backend:
     build:
       context: .
       dockerfile: Dockerfile
-#    command: python3 project/manage.py runserver 0.0.0.0:8000
-    command: daphne -b 0.0.0.0 -p 8000 project.core.asgi:application
+    command: python3 project/manage.py runserver 0.0.0.0:8000
+#    command: daphne -b 0.0.0.0 -p 8000 project.core.asgi:application  # when using this we lose hot loading.
     environment:
       - DEBUG=True
       - DJANGO_SETTINGS_MODULE=project.settings.local
@@ -68,8 +38,6 @@ services:
     depends_on:
       - cache
       - database
-      - elasticsearch
-      - elasticsearch_test
     stdin_open: true
     tty: true
   worker:

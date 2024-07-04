@@ -1,3 +1,4 @@
+from django.contrib.postgres import search
 from django.db import models
 from django.utils import timezone
 
@@ -46,32 +47,39 @@ class Gig(BaseModel):
         blank=True,
         null=True,
     )
+    search_username = models.CharField(max_length=254, null=True)
+    search_country = models.CharField(max_length=254, null=True)
+    search_genres = models.TextField(null=True)
+    search_vector = search.SearchVectorField(null=True)
 
-    def genres_indexing(self):
-        """Used in Elasticsearch indexing."""
-        # Must be a list as elastic search cannot serialize a queryset.
-        return list(
-            self.genres.filter(active=True).values_list("genre", flat=True)
+    def save(self, *args, **kwargs):
+        super().save()
+        self.update_search_vector()
+        self.user.update_search_vector()
+
+    def update_search_vector(self):
+        self.search_username = self.user.username
+        self.search_country = f"{self.country.country} {self.country.code}"
+        self.search_genres = " ".join(
+            genre.genre for genre in self.genres.all()
         )
-
-    def country_indexing(self):
-        """Used in Elasticsearch indexing."""
-        if not self.country:
-            return None
-        return f"{self.country.country} {self.country.code}"  # noqa
+        # Saving here for fields to show up for SearchVector.
+        super().save()
+        self.search_vector = search.SearchVector(
+            "search_username",
+            "title",
+            "description",
+            "location",
+            "search_country",
+            "search_genres",
+        )
+        super().save()
 
     def replies(self):
         return (
             self.rooms.filter(active=True)  # noqa
             .exclude(messages__isnull=True)
             .count()
-        )
-
-    def has_replies(self):
-        return (
-            self.rooms.filter(active=True)  # noqa
-            .exclude(messages__isnull=True)
-            .exists()
         )
 
     @property

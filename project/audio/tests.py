@@ -1,7 +1,6 @@
 import json
 from datetime import timedelta
 
-from django.db.models import signals
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -22,8 +21,6 @@ class BaseAudioAPITestCase(TestCase):
             country="United Kingdom",
             code="GB",
         )
-        # Disables django_elasticsearch_dsl signals for updating documents.
-        signals.post_save.receivers = []
 
     def create_gig(self, title, location, genres=None):
         gig = gig_models.Gig.objects.create(
