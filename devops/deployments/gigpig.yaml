@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gigpig-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gigpig
+  template:
+    metadata:
+      labels:
+        app: gigpig
+    spec:
+      containers:
+      - name: gigpig-container
+        image: docker.io/royhanley8/gp_be:latest
+        env:
+        - name: DJANGO_SETTINGS_MODULE
+          value: "project.settings.local"
+        - name: SECRET_KEY
+          value: "#m£ow!"
+        - name: CELERY_BROKER_URL
+          value: "redis://cache:6379/2"
+      imagePullSecrets:
+      - name: regcred
