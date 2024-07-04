@@ -1,16 +1,13 @@
 from django.conf import settings
 from django.http import Http404
 from django.utils import timezone
-from elasticsearch_dsl import Q
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from project.core import permissions
 from project.core.api import viewsets as core_viewsets
-from project.core.search.queries import wildcard_query_for_words
 from project.gig import models, serializers
-from project.gig.search_indexes.documents.gig import GigDocument
 
 
 class GigViewSet(core_viewsets.CustomModelViewSet):
@@ -96,88 +93,57 @@ class GigViewSet(core_viewsets.CustomModelViewSet):
 
     @action(detail=False, methods=["GET"])
     def search(self, request):
-        search = GigDocument.search().query(Q("term", active=True))
-
+        params = {
+            "active": True,
+        }
         if not request.query_params.get("past_gigs"):
             start_date__gte = request.query_params.get("start_date__gte")
-            search = search.filter(
-                "range",
-                **{"start_date": {"gte": start_date__gte or "now"}},
+            params.update(
+                {"start_date__gte": start_date__gte or timezone.now()}
             )
 
-        query = request.query_params.get("q", "")
-        words = query.split(" ")
-
-        username_queries = wildcard_query_for_words("user", words)
-        title_queries = wildcard_query_for_words("title", words)
-        description_queries = wildcard_query_for_words("description", words)
-        location_queries = wildcard_query_for_words("location", words)
-        country_queries = wildcard_query_for_words("country", words)
-        genres_queries = wildcard_query_for_words("genres", words)
-        combined_queries = (
-            username_queries
-            + title_queries
-            + description_queries
-            + location_queries
-            + country_queries
-            + genres_queries
-        )
-        combined_query = Q("bool", should=combined_queries)
-        search = search.query(combined_query)
-
         if request.query_params.get("has_spare_ticket"):
-            search = search.query(Q("term", has_spare_ticket=True))
+            params.update({"has_spare_ticket": True})
 
         if request.query_params.get("has_replies"):
-            search = search.query(Q("term", has_replies=True))
+            params.update(
+                {
+                    "rooms__active": True,
+                    "rooms__messages__isnull": False,
+                }
+            )
 
-        # As `is_favorite` is a computed field determined at the time
-        # of the API call we get favorite gigs from the requesting
-        # user then perform a fresh elastic search query here.
         if request.query_params.get("is_favorite"):
             favorite_gigs_ids = request.user.favorite_gigs.filter(
                 active=True,
             ).values_list("id", flat=True)
-            favorite_gigs_query = Q(
-                "terms", id__raw=[str(_id) for _id in favorite_gigs_ids]
-            )
-            search = search.query(favorite_gigs_query)
+            params.update({"id__in": favorite_gigs_ids})
 
         my_gigs = request.query_params.get("my_gigs")
         if my_gigs:
-            search = search.filter(
-                "match",
-                user=request.user.username,
+            params.update({"user": request.user})
+
+        query = request.query_params.get("q")
+        if query:
+            cleaned_query = " ".join(
+                word
+                for word in query.split(" ")
+                if word.lower() not in settings.ENGLISH_STOP_WORDS
+            )
+            params.update(
+                {
+                    "search_vector": cleaned_query,
+                }
             )
 
-        return self.return_parsed_search_response(
-            request,
-            search,
-            exclude_requesting_user=not my_gigs,
+        subquery = (
+            models.Gig.objects.filter(**params)
+            .distinct("id")
+            .values_list("id", flat=True)
         )
-
-    def return_parsed_search_response(
-        self,
-        request,
-        search,
-        exclude_requesting_user=False,
-    ):
-        """
-        Takes an elasticsearch query then returns
-        a serialized and paginated response.
-        """
-        # fmt: off
-        search = search[0:settings.ELASTICSEARCH_PAGINATION_LIMIT]
-        # fmt: on
-
-        queryset = models.Gig.objects.filter(
-            id__in=[record.id for record in search]
-        ).order_by("start_date")
-        if exclude_requesting_user:
-            queryset = queryset.exclude(
-                user__username=request.user.username,
-            )
-
+        queryset = models.Gig.objects.filter(id__in=subquery).order_by(
+            "start_date"
+        )
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)

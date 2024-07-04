@@ -1,14 +1,12 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from elasticsearch_dsl import Q
+from django.utils import timezone
 from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from project.core import permissions
-from project.core.search.queries import wildcard_query_for_words
 from project.custom_user import models, serializers
-from project.custom_user.search_indexes.documents.user import UserDocument
 from project.gig import models as gig_models
 
 User = get_user_model()
@@ -66,59 +64,50 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["GET"])
     def search(self, request):
-        search = UserDocument.search().query(Q("term", is_active=True))
-
-        query = request.query_params.get("q")
-        words = query.split(" ")
-        username_queries = wildcard_query_for_words("username", words)
-        country_queries = wildcard_query_for_words("country", words)
-        bio_queries = wildcard_query_for_words("bio", words)
-        genres_queries = wildcard_query_for_words("genres", words)
-        combined_queries = (
-            username_queries + country_queries + bio_queries + genres_queries
-        )
-        combined_query = Q("bool", should=combined_queries)
-        search = search.query(combined_query)
+        params = {}
 
         if request.query_params.get("has_active_gigs"):
-            search = search.query(Q("term", has_active_gigs=True))
-
-        # As `is_favorite` is a computed field determined at the time
-        # of the API call we get favorite users from the requesting
-        # user then perform a fresh elastic search query here.
+            params.update(
+                {
+                    "gigs__active": True,
+                    "gigs__start_date__gte": timezone.now(),
+                }
+            )
         if request.query_params.get("is_favorite"):
             favorite_users_ids = request.user.favorite_users.all().values_list(
                 "id",
                 flat=True,
             )
-            favorite_users_query = Q(
-                "terms",
-                id__raw=[str(_id) for _id in favorite_users_ids],
+            params.update({"id__in": favorite_users_ids})
+
+        query = request.query_params.get("q")
+        if query:
+            cleaned_query = " ".join(
+                word
+                for word in query.split(" ")
+                if word.lower() not in settings.ENGLISH_STOP_WORDS
             )
-            search = search.query(favorite_users_query)
-
-        return self.return_parsed_search_response(request, search)
-
-    def return_parsed_search_response(self, request, search):
-        """
-        Takes an elasticsearch query then returns
-        a serialized and paginated response.
-        """
-        # fmt: off
-        search = search[0:settings.ELASTICSEARCH_PAGINATION_LIMIT]
-        # fmt: on
-        queryset = (
-            User.objects.filter(id__in=[record.id for record in search])
-            .exclude(username=request.user.username)
-            .order_by("username")
+            params.update(
+                {
+                    "search_vector": cleaned_query,
+                }
+            )
+        subquery = (
+            User.objects.filter(**params)
+            .distinct("id")
+            .values_list("id", flat=True)
         )
-
+        queryset = (
+            User.objects.filter(id__in=subquery)
+            .order_by("id")
+            .exclude(username=request.user.username)
+        )
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serialized = self.get_serializer_if_not_owner(
+        serialized = self.get_serializer(
             queryset,
             many=True,
         )

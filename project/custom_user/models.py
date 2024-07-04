@@ -3,6 +3,7 @@ import uuid
 from django.contrib.auth import models as auth_models
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
+from django.contrib.postgres import search
 from django.core.validators import EmailValidator
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -164,12 +165,34 @@ class User(  # type: ignore
         blank=True,
         null=True,
     )
+    room_ids_with_unread_messages = models.JSONField(default=list)
 
-    room_ids_with_unread_messages = models.JSONField(default=[])
+    search_country = models.CharField(max_length=254, null=True)
+    search_genres = models.TextField(null=True)
+    search_vector = search.SearchVectorField(null=True)
 
-    def id_as_string(self):
-        """Used in elasticsearch indexing."""
-        return str(self.id)
+    def save(self, *args, **kwargs):
+        super().save()
+        self.update_search_vector()
+        for gig in self.gigs.filter(active=True):  # noqa
+            gig.update_search_vector()
+
+    def update_search_vector(self):
+        if self.country:
+            self.search_country = (
+                f"{self.country.country} {self.country.code}"  # noqa
+            )
+        self.search_genres = " ".join(
+            genre.genre for genre in self.genres.all()
+        )
+        # Saving here for fields to show up for SearchVector.
+        super().save()
+        self.search_vector = search.SearchVector(
+            "username",
+            "search_country",
+            "search_genres",
+        )
+        super().save()
 
     def get_jwt(self):
         refresh = tokens.RefreshToken.for_user(self)
@@ -178,19 +201,6 @@ class User(  # type: ignore
             "access": str(refresh.access_token),
         }
 
-    def genres_indexing(self):
-        """Used in Elasticsearch indexing."""
-        # Must be a list as elastic search cannot serialize a queryset.
-        return list(
-            self.genres.filter(active=True).values_list("genre", flat=True)
-        )
-
-    def country_indexing(self):
-        """Used in Elasticsearch indexing."""
-        if not self.country:
-            return None
-        return f"{self.country.country} {self.country.code}"  # noqa
-
     def number_of_active_gigs(self):
         return (
             self.gigs.filter(active=True)  # noqa
@@ -198,16 +208,6 @@ class User(  # type: ignore
                 start_date__lte=timezone.now(),
             )
             .count()
-        )
-
-    def has_active_gigs(self):
-        """Used in Elasticsearch indexing."""
-        return (
-            self.gigs.filter(active=True)  # noqa
-            .exclude(
-                start_date__lte=timezone.now(),
-            )
-            .exists()
         )
 
     def add_room_id_with_unread_messages(self, new_room_id):

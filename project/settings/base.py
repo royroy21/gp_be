@@ -50,7 +50,6 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "whitenoise.runserver_nostatic",
-    "django_elasticsearch_dsl",
 ]
 
 INSTALLED_APPS = (
@@ -204,25 +203,6 @@ REST_FRAMEWORK = {
     "ORDERING_PARAM": "order_by",
 }
 
-# Elasticsearch configuration
-ELASTICSEARCH_DSL = {
-    "default": {
-        "hosts": "elasticsearch:9200",
-    },
-}
-# Using a high number here as DRF will be handling pagination
-ELASTICSEARCH_PAGINATION_LIMIT = 1000
-
-# This lets elasticsearch_dsl run signals to index models on save
-ELASTICSEARCH_DSL_AUTO_REFRESH = True
-
-# Name of the Elasticsearch index
-ELASTICSEARCH_INDEX_NAMES = {
-    "project.chat.search_indexes.documents.room": "room",
-    "project.custom_user.search_indexes.documents.user": "user",
-    "project.gig.search_indexes.documents.gig": "gig",
-}
-
 # DRF simple JWT
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
 SIMPLE_JWT = {
@@ -260,3 +240,41 @@ MEDIA_URL = "/media/"
 SITE_ID = 1  # Corresponds to the ID of the site in the database.
 # TODO - Add another site with the correct domain name for production
 SITE_SCHEME = "http"
+
+
+# Search stop words for use in Postgres free text search.
+ENGLISH_STOP_WORDS = [
+    "a",
+    "an",
+    "and",
+    "are",
+    "as",
+    "at",
+    "be",
+    "but",
+    "by",
+    "for",
+    "if",
+    "in",
+    "into",
+    "is",
+    "it",
+    "no",
+    "not",
+    "of",
+    "on",
+    "or",
+    "such",
+    "that",
+    "the",
+    "their",
+    "then",
+    "there",
+    "these",
+    "they",
+    "this",
+    "to",
+    "was",
+    "will",
+    "with",
+]

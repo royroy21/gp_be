@@ -14,7 +14,3 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
-
-    def id_as_string(self):
-        """Used in elasticsearch indexing."""
-        return str(self.id)
