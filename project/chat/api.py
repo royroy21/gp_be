@@ -96,7 +96,7 @@ class RoomViewSet(
             .values_list("id", flat=True)
         )
         queryset = (
-            models.Room.objects.filter(id__in=subquery)
+            models.Room.objects.filter(active=True, id__in=subquery)
             .annotate(last_message_date=Max("messages__date_created"))
             .order_by("-last_message_date")
             .exclude(messages__isnull=True)

@@ -64,8 +64,9 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["GET"])
     def search(self, request):
-        params = {}
-
+        params = {
+            "is_active": True,
+        }
         if request.query_params.get("has_active_gigs"):
             params.update(
                 {
