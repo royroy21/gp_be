@@ -130,11 +130,7 @@ class GigViewSet(core_viewsets.CustomModelViewSet):
                 for word in query.split(" ")
                 if word.lower() not in settings.ENGLISH_STOP_WORDS
             )
-            params.update(
-                {
-                    "search_vector": cleaned_query,
-                }
-            )
+            params.update({"search_vector": cleaned_query})
 
         subquery = (
             models.Gig.objects.filter(**params)

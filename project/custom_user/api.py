@@ -87,11 +87,8 @@ class UserViewSet(viewsets.ModelViewSet):
                 for word in query.split(" ")
                 if word.lower() not in settings.ENGLISH_STOP_WORDS
             )
-            params.update(
-                {
-                    "search_vector": cleaned_query,
-                }
-            )
+            params.update({"search_vector": cleaned_query})
+
         subquery = (
             User.objects.filter(**params)
             .distinct("id")
