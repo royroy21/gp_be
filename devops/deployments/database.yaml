@@ -15,5 +15,3 @@ spec:
       containers:
       - name: database-container
         image: geographica/postgis:unbiased_uakari
-        ports:
-        - containerPort: 5432
