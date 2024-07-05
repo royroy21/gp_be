@@ -15,3 +15,10 @@ spec:
       containers:
       - name: database-container
         image: geographica/postgis:unbiased_uakari
+        volumeMounts:
+        - mountPath: /data
+          name: database
+      volumes:
+      - name: database
+        persistentVolumeClaim:
+          claimName: database

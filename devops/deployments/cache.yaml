@@ -15,5 +15,12 @@ spec:
       containers:
       - name: cache-container
         image: docker.io/royhanley8/redis-roy:latest
+        volumeMounts:
+        - mountPath: /data
+          name: redis
+      volumes:
+      - name: redis
+        persistentVolumeClaim:
+          claimName: redis
       imagePullSecrets:
       - name: regcred
