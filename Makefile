@@ -19,7 +19,6 @@
 	test \
 	up \
 	update_requirements \
-	rebuild_indexes \
 
 usage:
 	@echo "Available commands:"
@@ -42,7 +41,6 @@ usage:
 	@echo "test............................Run tests for the project"
 	@echo "up..............................docker-compose up"
 	@echo "update_requirements.............Update requirements file after adding a dependency"
-	@echo "rebuild_indexes.................Rebuild elastic search indexes"
 
 PROJECT_DIR=gp_be
 
@@ -110,6 +108,3 @@ up:
 
 update_requirements:
 	@docker-compose run --rm backend pip freeze > requirements.txt
-
-rebuild_indexes:
-	$(MAKE) manage ARGS="search_index --rebuild -f ${ARGS}"
