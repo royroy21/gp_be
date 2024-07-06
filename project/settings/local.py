@@ -26,9 +26,18 @@ CORS_ALLOW_ALL_ORIGINS = True
 # https://gankrin.org/cors-no-access-control-allow-origin-header-error-django/
 # https://pypi.org/project/django-cors-headers/
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:19006",
-    "http://127.0.0.1:19006",
+    "http://127.0.0.1:19006",  # frontend server
+    "http://localhost:19006",  # frontend server
+    "http://127.0.0.1:8080",  # nginx server
+    "http://localhost:8080",  # nginx server
 ]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8080",  # nginx server
+    "http://localhost:8080",  # nginx server
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_METHODS = (*defaults.default_methods,)
 

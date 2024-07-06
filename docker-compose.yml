@@ -22,8 +22,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: python3 project/manage.py runserver 0.0.0.0:8000
-#    command: daphne -b 0.0.0.0 -p 8000 project.core.asgi:application  # when using this we lose hot loading.
+    # command: python3 project/manage.py runserver 0.0.0.0:8000
+    command: daphne -b 0.0.0.0 -p 8000 project.core.asgi:application  # when using this we lose hot loading.
     environment:
       - DEBUG=True
       - DJANGO_SETTINGS_MODULE=project.settings.local
@@ -32,6 +32,7 @@ services:
     restart: unless-stopped
     volumes:
       - .:/code
+      - static-files:/code/project/static
       - ipython-data:/root/.ipython/profile_default
     ports:
       - "8000:8000"
@@ -55,8 +56,18 @@ services:
       - .:/code
     depends_on:
       - backend
+  nginx:
+    image: nginx
+    volumes:
+      - static-files:/code/project/static
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - backend
+    ports:
+     - "8080:80"
 
 volumes:
   cache-data:
   database-data:
   ipython-data:
+  static-files:
