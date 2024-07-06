@@ -1,6 +1,7 @@
 # Put any command that doesn't create a file here (almost all of the commands)
 .PHONY: \
 	attach \
+	bash \
     black \
     black_check \
 	chown \
@@ -23,6 +24,7 @@
 usage:
 	@echo "Available commands:"
 	@echo "attach..........................Attach to backend container. Useful for when using ipdb"
+	@echo "bash............................Enter backend server with bash shell prompt"
 	@echo "black...........................Format Python code"
 	@echo "black_check.....................Checks Python code formatting without making changes"
 	@echo "chown...........................Change ownership of files to own user"
@@ -46,6 +48,9 @@ PROJECT_DIR=gp_be
 
 attach:
 	@docker attach ${PROJECT_DIR}_backend_1
+
+bash:
+	@docker-compose run --rm backend bash ${ARGS}
 
 black:
 	@docker-compose run --rm backend black -l 79 . ${ARGS}
