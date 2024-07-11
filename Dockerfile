@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y \
 RUN pip install -r requirements.txt
 COPY . /code/
 RUN chown -R appuser:appuser /code
-USER appuser
+#USER appuser
 
 EXPOSE 8000
 

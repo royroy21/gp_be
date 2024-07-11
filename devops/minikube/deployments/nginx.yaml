@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        volumeMounts:
+        - mountPath: /code/project/media
+          name: media
+        - mountPath: /code/project/static
+          name: static
+        - mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+          name: nginx
+      volumes:
+      - name: media
+        persistentVolumeClaim:
+          claimName: media
+      - name: static
+        persistentVolumeClaim:
+          claimName: static
+      - name: nginx
+        configMap:
+          name: nginx
+          items:
+          - key: nginx.conf
+            path: nginx.conf

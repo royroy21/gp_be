@@ -47,27 +47,45 @@ Various kubernetes commands:
 - `kubectl logs <pod-name> -c <container-name>`
 
 ### Applying devops folder deployments and services yaml files.
-- `kubectl apply -f devops/deployments/<file>.yaml`
-- `kubectl apply -f devops/services/<file>.yaml`
+- `kubectl apply -f devops/minikube/deployments/<file>.yaml`
+- `kubectl apply -f devops/minikube/services/<file>.yaml`
 
 ### ssh into pod
 - `kubectl exec -it <pod-name> -- /bin/bash`
 
 # To deploy locally from scratch
 
-### volumes
-- `kubectl apply -f devops/volumes/database.yaml`
-- `kubectl apply -f devops/volumes/database_claim.yaml`
-- `kubectl apply -f devops/volumes/cache.yaml`
-- `kubectl apply -f devops/volumes/cache_claim.yaml`
+### minikube
+We need to create volumes on the host minikube machine for 
+Django's static and media directories.
+- `minikube ssh`
+- `mkdir static; chmod -R 777 static`
+- `mkdir media; chmod -R 777 media`
+- `mkdir postgres; chmod -R 777 postgres`
+- `mkdir redis; chmod -R 777 redis`
 
+### config maps
+- `kubectl apply -f devops/minikube/configmaps/nginx.yaml`
+
+### volumes
+- `kubectl apply -f devops/minikube/volumes/media.yaml`
+- `kubectl apply -f devops/minikube/volumes/media_claim.yaml`
+- `kubectl apply -f devops/minikube/volumes/static.yaml`
+- `kubectl apply -f devops/minikube/volumes/static_claim.yaml` 
+- `kubectl apply -f devops/minikube/volumes/postgres.yaml`
+- `kubectl apply -f devops/minikube/volumes/postgres_claim.yaml`
+- `kubectl apply -f devops/minikube/volumes/redis.yaml`
+- `kubectl apply -f devops/minikube/volumes/redis_claim.yaml`
+ 
 ### deployments
-- `kubectl apply -f devops/deployments/database.yaml`
-- `kubectl apply -f devops/deployments/cache.yaml`
-- `kubectl apply -f devops/deployments/gigpig.yaml`
-- `kubectl apply -f devops/deployments/worker.yaml`
+- `kubectl apply -f devops/minikube/deployments/postgres.yaml`
+- `kubectl apply -f devops/minikube/deployments/redis.yaml`
+- `kubectl apply -f devops/minikube/deployments/django.yaml`
+- `kubectl apply -f devops/minikube/deployments/worker.yaml`
+- `kubectl apply -f devops/minikube/deployments/nginx.yaml`
 
 ### services
-- `kubectl apply -f devops/services/database.yaml`
-- `kubectl apply -f devops/services/cache.yaml`
-- `kubectl apply -f devops/services/gigpig.yaml`
+- `kubectl apply -f devops/minikube/services/postgres.yaml`
+- `kubectl apply -f devops/minikube/services/redis.yaml`
+- `kubectl apply -f devops/minikube/services/django.yaml`
+- `kubectl apply -f devops/minikube/services/nginx.yaml`

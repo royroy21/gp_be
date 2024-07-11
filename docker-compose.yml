@@ -1,7 +1,7 @@
 version: "3"
 
 services:
-  cache:
+  redis:
     build:
       context: ./redis
     privileged: true
@@ -9,16 +9,16 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - cache-data:/data
-  database:
+      - redis-data:/data
+  postgres:
     image: geographica/postgis:unbiased_uakari
     ports:
       - "9432:5432"
     volumes:
-      - database-data:/data
+      - postgres-data:/data
     environment:
       - POSTGRES_PASSWD=postgres
-  backend:
+  django:
     build:
       context: .
       dockerfile: Dockerfile
@@ -28,7 +28,7 @@ services:
       - DEBUG=True
       - DJANGO_SETTINGS_MODULE=project.settings.local
       - SECRET_KEY=#m£ow!
-      - CELERY_BROKER_URL=redis://cache:6379/2
+      - CELERY_BROKER_URL=redis://redis:6379/2
       - SERVER_ADDRESS=http://localhost:8080
     restart: unless-stopped
     volumes:
@@ -37,8 +37,8 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - cache
-      - database
+      - redis
+      - postgres
     stdin_open: true
     tty: true
   worker:
@@ -50,15 +50,15 @@ services:
       - DEBUG=True
       - DJANGO_SETTINGS_MODULE=project.settings.local
       - SECRET_KEY=#m£ow!
-      - CELERY_BROKER_URL=redis://cache:6379/2
+      - CELERY_BROKER_URL=redis://redis:6379/2
       - SERVER_ADDRESS=http://localhost:8080
     restart: unless-stopped
     volumes:
       - .:/code
     depends_on:
-      - backend
+      - django
 
 volumes:
-  cache-data:
-  database-data:
+  redis-data:
+  postgres-data:
   ipython-data:

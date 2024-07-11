@@ -23,8 +23,8 @@
 
 usage:
 	@echo "Available commands:"
-	@echo "attach..........................Attach to backend container. Useful for when using ipdb"
-	@echo "bash............................Enter backend server with bash shell prompt"
+	@echo "attach..........................Attach to django container. Useful for when using ipdb"
+	@echo "bash............................Enter django server with bash shell prompt"
 	@echo "black...........................Format Python code"
 	@echo "black_check.....................Checks Python code formatting without making changes"
 	@echo "chown...........................Change ownership of files to own user"
@@ -47,40 +47,40 @@ usage:
 PROJECT_DIR=gp_be
 
 attach:
-	@docker attach ${PROJECT_DIR}_backend_1
+	@docker attach ${PROJECT_DIR}_django_1
 
 bash:
-	@docker-compose run --rm backend bash ${ARGS}
+	@docker-compose run --rm django bash ${ARGS}
 
 black:
-	@docker-compose run --rm backend black -l 79 . ${ARGS}
+	@docker-compose run --rm django black -l 79 . ${ARGS}
 
 black_check:
 	$(MAKE) black ARGS="--check"
 
 chown:
-	@docker-compose run --rm backend chown -R "`id -u`:`id -u`" "/code/${ARGS}"
+	@docker-compose run --rm django chown -R "`id -u`:`id -u`" "/code/${ARGS}"
 
 clear_cache:
 	$(MAKE) manage ARGS="clear_cache ${ARGS}"
 
 clear_pyc:
-	@docker-compose run --rm backend find . -name '*.pyc' -delete
+	@docker-compose run --rm django find . -name '*.pyc' -delete
 
 help:
 	$(MAKE) usage
 
 isort:
-	@docker-compose run --rm backend isort . ${ARGS}
+	@docker-compose run --rm django isort . ${ARGS}
 
 isort_check:
 	$(MAKE) isort ARGS="--check"
 
 lint:
-	@docker-compose run --rm backend flake8 . ${ARGS}
+	@docker-compose run --rm django flake8 . ${ARGS}
 
 manage:
-	@docker-compose run --rm ${OPTIONS} backend python3 ${PYTHON_ARGS} project/manage.py ${ARGS}
+	@docker-compose run --rm ${OPTIONS} django python3 ${PYTHON_ARGS} project/manage.py ${ARGS}
 
 migrate:
 	$(MAKE) manage ARGS="migrate ${ARGS}"
@@ -91,7 +91,7 @@ migrations:
 mypy:
 	# Using --no-incremental to avoid bug https://github.com/typeddjango/django-stubs/issues/760.
 	# This results in mypy not using cache meaning it's pretty slow. Fix later.
-	@docker-compose run --rm backend mypy --no-incremental --config-file mypy.ini . ${ARGS}
+	@docker-compose run --rm django mypy --no-incremental --config-file mypy.ini . ${ARGS}
 
 PG_DB_HOST=database
 PG_DB_PORT=5432
@@ -112,4 +112,4 @@ up:
 	@docker-compose up ${ARGS}
 
 update_requirements:
-	@docker-compose run --rm backend pip freeze > requirements.txt
+	@docker-compose run --rm django pip freeze > requirements.txt

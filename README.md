@@ -12,4 +12,4 @@ On first local install if you need test data run the following commands:
 
 ## Kubernetes
 This project can be started and tested locally using minikube.
-For instructions on how to do this view the readme [here](devops/README.md).
+For instructions on how to do this view the readme [here](devops/minikube/README.md).

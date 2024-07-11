@@ -1,26 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gigpig-deployment
+  name: worker
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: gigpig
+      app: worker
   template:
     metadata:
       labels:
-        app: gigpig
+        app: worker
     spec:
       containers:
-      - name: gigpig-container
+      - name: worker
         image: docker.io/royhanley8/gp_be:latest
+        command: ["celery", "-A", "project", "worker", "-l", "DEBUG", "-Q", "push_notifications,thumbnails"]
         env:
         - name: DJANGO_SETTINGS_MODULE
           value: "project.settings.local"
         - name: SECRET_KEY
           value: "#m£ow!"
         - name: CELERY_BROKER_URL
-          value: "redis://cache:6379/2"
+          value: "redis://redis:6379/2"
       imagePullSecrets:
       - name: regcred

@@ -1,26 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cache-deployment
+  name: postgres
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: cache
+      app: postgres
   template:
     metadata:
       labels:
-        app: cache
+        app: postgres
     spec:
       containers:
-      - name: cache-container
-        image: docker.io/royhanley8/redis-roy:latest
+      - name: postgres
+        image: geographica/postgis:unbiased_uakari
         volumeMounts:
         - mountPath: /data
-          name: redis
+          name: postgres
       volumes:
-      - name: redis
+      - name: postgres
         persistentVolumeClaim:
-          claimName: redis
-      imagePullSecrets:
-      - name: regcred
+          claimName: postgres

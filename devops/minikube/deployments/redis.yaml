@@ -1,24 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: database-deployment
+  name: redis
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: database
+      app: redis
   template:
     metadata:
       labels:
-        app: database
+        app: redis
     spec:
       containers:
-      - name: database-container
-        image: geographica/postgis:unbiased_uakari
+      - name: redis
+        image: docker.io/royhanley8/redis-roy:latest
         volumeMounts:
         - mountPath: /data
-          name: database
+          name: redis
       volumes:
-      - name: database
+      - name: redis
         persistentVolumeClaim:
-          claimName: database
+          claimName: redis
+      imagePullSecrets:
+      - name: regcred

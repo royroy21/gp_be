@@ -8,7 +8,7 @@ DATABASES = {
         "NAME": "postgres",
         "USER": "postgres",
         "PASSWORD": "postgres",
-        "HOST": "database",
+        "HOST": "postgres",
         "PORT": 5432,
     }
 }
@@ -28,14 +28,14 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:19006",  # frontend server
     "http://localhost:19006",  # frontend server
-    "http://127.0.0.1:8080",  # nginx server
-    "http://localhost:8080",  # nginx server
 ]
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://127.0.0.1:8080",  # nginx server
-    "http://localhost:8080",  # nginx server
-]
+CSRF_TRUSTED_ORIGINS = []
+
+SERVER_ADDRESS = os.environ.get("SERVER_ADDRESS")
+if SERVER_ADDRESS:
+    CORS_ALLOWED_ORIGINS.append(SERVER_ADDRESS)
+    CSRF_TRUSTED_ORIGINS.append(SERVER_ADDRESS)
 
 CORS_ALLOW_CREDENTIALS = True
 
