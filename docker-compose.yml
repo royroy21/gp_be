@@ -29,10 +29,10 @@ services:
       - DJANGO_SETTINGS_MODULE=project.settings.local
       - SECRET_KEY=#m£ow!
       - CELERY_BROKER_URL=redis://cache:6379/2
+      - SERVER_ADDRESS=http://localhost:8080
     restart: unless-stopped
     volumes:
       - .:/code
-      - static-files:/code/project/static
       - ipython-data:/root/.ipython/profile_default
     ports:
       - "8000:8000"
@@ -51,23 +51,14 @@ services:
       - DJANGO_SETTINGS_MODULE=project.settings.local
       - SECRET_KEY=#m£ow!
       - CELERY_BROKER_URL=redis://cache:6379/2
+      - SERVER_ADDRESS=http://localhost:8080
     restart: unless-stopped
     volumes:
       - .:/code
     depends_on:
       - backend
-  nginx:
-    image: nginx
-    volumes:
-      - static-files:/code/project/static
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - backend
-    ports:
-     - "8080:80"
 
 volumes:
   cache-data:
   database-data:
   ipython-data:
-  static-files:
