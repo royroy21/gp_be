@@ -22,8 +22,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    # command: python3 project/manage.py runserver 0.0.0.0:8000
-    command: daphne -b 0.0.0.0 -p 8000 project.core.asgi:application  # when using this we lose hot loading.
+    command: python3 project/manage.py runserver 0.0.0.0:8000
     environment:
       - DEBUG=True
       - DJANGO_SETTINGS_MODULE=project.settings.local
