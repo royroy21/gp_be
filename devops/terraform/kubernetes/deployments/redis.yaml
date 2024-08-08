@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: docker.io/royhanley8/redis-roy:latest
+        volumeMounts:
+        - mountPath: /data
+          name: redis
+      volumes:
+      - name: redis
+        persistentVolumeClaim:
+          claimName: redis
+      imagePullSecrets:
+      - name: regcred

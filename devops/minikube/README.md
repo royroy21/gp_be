@@ -3,15 +3,20 @@ This project uses containers that are stored in private hub.
 
 ### To build a local docker image before pushing to docker hub
 - `docker build -t <container>:tag .` 
-- Example: `docker build -t gigpig:latest .` 
+- Example: `docker build -t royhanley8/gp_be:latest .` NOTE: this tags the image also.
 
 ### To tag an image
+If you want to tag the image with another tag use:
 - `docker tag <container> <username>/<name>:<tag>` 
-- Example `docker tag gigpig royhanley8/gp_be:latest`
+- Example `docker tag royhanley8/gp_be:latest royhanley8/gp_be:latest`
 
 ### To push an image
 - `docker push <username>/<name>:<tag>` 
 - Example `docker push royhanley8/gp_be:latest`
+
+### Image not updating
+If the image doesn't want to update try pruning volumes and trying again.
+- `docker system prune -a --volumes`
 
 # Kubernetes.
 https://kubernetes.io/docs/tutorials/

@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: mydomain-cert
+  namespace: default
+spec:
+  secretName: mydomain-tls
+  issuerRef:
+    name: letsencrypt-dns
+    kind: ClusterIssuer
+    group: cert-manager.io
+  commonName: ${ backend_domain }
+  dnsNames:
+  - ${ backend_domain }

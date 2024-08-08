@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: django
+  template:
+    metadata:
+      labels:
+        app: django
+    spec:
+      containers:
+      - name: django
+        image: ${ django_image }
+        env:
+        - name: DJANGO_SETTINGS_MODULE
+          value: "project.settings.production"
+        - name: SECRET_KEY
+          value: ${ django_secret }
+        - name: CELERY_BROKER_URL
+          value: "redis://cache:6379/2"
+        - name: BACKEND_DOMAIN
+          value: ${ backend_domain }
+        - name: DB_NAME
+          value: ${ db_name }
+        - name: DB_USER
+          value: ${ db_user }
+        - name: DB_PASSWORD
+          value: ${ db_password }
+        - name: DB_HOST
+          value: ${ db_host }
+        - name: DB_PORT
+          value: "${format("%d", db_port)}"
+        - name: AWS_ACCESS_KEY_ID
+          value: ${ aws_access_key_id }
+        - name: AWS_SECRET_ACCESS_KEY
+          value: ${ aws_secret_access_key }
+        - name: AWS_STORAGE_BUCKET_NAME
+          value: ${ aws_storage_bucket_name }
+        - name: AWS_BUCKET_DOMAIN_NAME
+          value: ${ aws_bucket_domain_name }
+        - name: AWS_S3_REGION_NAME
+          value: ${ aws_s3_region_name }
+      imagePullSecrets:
+      - name: dockerhub-config

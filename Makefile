@@ -93,14 +93,14 @@ mypy:
 	# This results in mypy not using cache meaning it's pretty slow. Fix later.
 	@docker-compose run --rm django mypy --no-incremental --config-file mypy.ini . ${ARGS}
 
-PG_DB_HOST=database
+PG_DB_HOST=postgres
 PG_DB_PORT=5432
 PG_DB_NAME=postgres
 PG_DB_USER=postgres
 PG_DB_PASSWORD=postgres
 
 psql:
-	@docker-compose run --rm -e PGPASSWORD=$(PG_DB_PASSWORD) database psql -h $(PG_DB_HOST) -p $(PG_DB_PORT) -U $(PG_DB_USER) -d $(PG_DB_NAME) $(ARGS)
+	@docker-compose run --rm -e PGPASSWORD=$(PG_DB_PASSWORD) postgres psql -h $(PG_DB_HOST) -p $(PG_DB_PORT) -U $(PG_DB_USER) -d $(PG_DB_NAME) $(ARGS)
 
 shell:
 	$(MAKE) manage ARGS="shell_plus --ipython ${ARGS}"

@@ -10,6 +10,10 @@ On first local install if you need test data run the following commands:
 - `make manage ARGS="import_genres"`
 - `make manage ARGS="create_fake_gigs"`
 
-## Kubernetes
+## Minikube
 This project can be started and tested locally using minikube.
 For instructions on how to do this view the readme [here](devops/minikube/README.md).
+
+## Kubernetes/Terraform
+This project uses Kubernetes with terraform for deployment.
+For instructions on how to do this view the readme [here](devops/terraform/README.md).

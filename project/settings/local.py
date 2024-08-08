@@ -2,6 +2,8 @@ from corsheaders import defaults
 
 from .base import *  # noqa
 
+ENV = "local"
+
 DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
@@ -13,7 +15,13 @@ DATABASES = {
     }
 }
 
-ENV = "local"
+INSTALLED_APPS.append("whitenoise.runserver_nostatic")
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.0/howto/static-files/
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATIC_ROOT = os.path.join(BASE_DIR, "project/static")
+STATIC_URL = "/static/"
 
 # Address to Django server needs to be here in production.
 ALLOWED_HOSTS = [

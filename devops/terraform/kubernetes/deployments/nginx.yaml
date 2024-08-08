@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        volumeMounts:
+        - mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+          name: nginx-config
+        - name: tls-secret
+          mountPath: /etc/ssl/certs/tls.crt
+          subPath: tls.crt
+        - name: tls-secret
+          mountPath: /etc/ssl/private/tls.key
+          subPath: tls.key
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx
+          items:
+          - key: nginx.conf
+            path: nginx.conf
+      - name: tls-secret
+        secret:
+          secretName: mydomain-tls

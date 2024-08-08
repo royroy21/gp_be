@@ -10,8 +10,7 @@ RUN useradd -ms /bin/bash appuser
 RUN mkdir /code && chown appuser:appuser /code
 
 WORKDIR /code
-
-COPY requirements.txt /code/
+COPY . /code/
 
 RUN apt-get update && apt-get install -y \
     libpq-dev \
@@ -22,9 +21,8 @@ RUN apt-get update && apt-get install -y \
     postgresql-client
 
 RUN pip install -r requirements.txt
-COPY . /code/
 RUN chown -R appuser:appuser /code
-#USER appuser
+USER appuser
 
 EXPOSE 8000
 
