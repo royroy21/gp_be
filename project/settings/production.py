@@ -1,3 +1,4 @@
+# flake8: noqa
 from corsheaders import defaults
 from storages.backends.s3boto3 import S3Boto3Storage  # noqa
 

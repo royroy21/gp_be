@@ -53,4 +53,6 @@ urlpatterns = [
         views.TokenRefreshView.as_view(),
         name="token_refresh",
     ),
+    path("api/reset-password/", user_api.reset_password),
+    path("api/reset-password-request/", user_api.reset_password_request),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

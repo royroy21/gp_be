@@ -1,11 +1,18 @@
+import json
+
+from django import forms, http
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from project.core import permissions
+from project.core.drf import blacklist
+from project.custom_email import send_reset_password_email
 from project.custom_user import models, serializers
 from project.gig import models as gig_models
 
@@ -202,3 +209,69 @@ class UserViewSet(viewsets.ModelViewSet):
             raise exceptions.NotFound
 
         return gig
+
+
+class EmailForm(forms.Form):
+    email = forms.EmailField()
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def reset_password_request(request):
+    form = EmailForm(json.loads(request.body))
+    if not form.is_valid():
+        return http.JsonResponse(
+            {"detail": "Email is not valid."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    email = form.cleaned_data["email"]
+    user = User.objects.filter(email=email).first()
+    if not user:
+        return http.JsonResponse(
+            {"detail": "No user with that email address exists."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    reset_password_token = models.ResetPasswordToken.objects.create(user=user)
+    send_reset_password_email(
+        to_address=email,
+        token=reset_password_token.token,
+    )
+    return http.JsonResponse({"message": "Reset password password sent."})
+
+
+class ResetPasswordForm(forms.Form):
+    password = forms.CharField()
+    token = forms.CharField()
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def reset_password(request):
+    form = ResetPasswordForm(json.loads(request.body))
+    if not form.is_valid():
+        return http.JsonResponse(
+            {"detail": "Malformed data."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    token = form.cleaned_data["token"]
+    token = models.ResetPasswordToken.objects.filter(
+        token=token, active=True
+    ).first()
+    if not token:
+        return http.JsonResponse(
+            {"detail": "No active reset password token found."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    new_password = form.cleaned_data["password"]
+    user = token.user
+    user.set_password(new_password)
+    user.save()
+    token.active = False
+    token.save()
+    blacklist.blacklist_user_tokens(user)
+
+    return http.JsonResponse({"message": "Password reset"})

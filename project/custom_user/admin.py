@@ -23,6 +23,22 @@ class NotificationTokenAdmin(admin.ModelAdmin):
     )
 
 
+class ResetPasswordAdmin(admin.ModelAdmin):
+    ordering = ("date_created",)
+    list_filter = ("active",)
+    list_display = (
+        "id",
+        "user",
+        "token",
+        "active",
+    )
+    search_fields = (
+        "user__username",
+        "user__email",
+        "user__id",
+    )
+
+
 class UserAdmin(BaseUserAdmin):
     fieldsets = tuple(
         list(BaseUserAdmin.fieldsets)  # type: ignore
@@ -50,4 +66,5 @@ class UserAdmin(BaseUserAdmin):
 
 
 admin.site.register(models.NotificationToken, NotificationTokenAdmin)
+admin.site.register(models.ResetPasswordToken, ResetPasswordAdmin)
 admin.site.register(User, UserAdmin)

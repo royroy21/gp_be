@@ -49,6 +49,7 @@ THIRD_PARTY_APPS = [
     "django_extensions",
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
 ]
 
 INSTALLED_APPS = (
@@ -198,14 +199,18 @@ REST_FRAMEWORK = {
 # DRF simple JWT
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=360),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("JWT",),
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "TOKEN_OBTAIN_SERIALIZER": (
         "custom_token.serializers.CustomTokenObtainPairSerializer"
     ),
+    "BLACKLIST_TOKEN_CHECKS": [
+        "rest_framework_simplejwt.token_blacklist.check_blacklisted_token",
+    ],
 }
 
 
@@ -233,6 +238,16 @@ SITE_ID = 1  # Corresponds to the ID of the site in the database.
 # TODO - Add another site with the correct domain name for production
 SITE_SCHEME = "http"
 
+# Frontend
+FRONTEND_DOMAIN = os.environ.get("FRONTEND_DOMAIN", "example.com")
+
+# Email
+EMAIL_HOST = os.environ.get("EMAIL_HOST")
+EMAIL_PORT = os.environ.get("EMAIL_PORT")
+EMAIL_USER = os.environ.get("EMAIL_USER")
+EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
+EMAIL_DEFAULT_FROM = os.environ.get("EMAIL_DEFAULT_FROM")
+EMAIL_DEFAULT_SUBJECT = os.environ.get("EMAIL_DEFAULT_SUBJECT")
 
 # Search stop words for use in Postgres free text search.
 ENGLISH_STOP_WORDS = [

@@ -231,3 +231,12 @@ class NotificationToken(BaseModel):
         related_name="notification_tokens",
     )
     token = models.CharField(max_length=254)
+
+
+class ResetPasswordToken(BaseModel):
+    user = models.ForeignKey(
+        "custom_user.User",
+        on_delete=models.CASCADE,
+        related_name="reset_password_tokens",
+    )
+    token = models.UUIDField(default=uuid.uuid4, editable=False)

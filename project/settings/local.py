@@ -1,8 +1,12 @@
+# flake8: noqa
 from corsheaders import defaults
 
 from .base import *  # noqa
 
 ENV = "local"
+
+# Frontend
+FRONTEND_DOMAIN = "localhost:19006"
 
 DATABASES = {
     "default": {
@@ -23,7 +27,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 STATIC_ROOT = os.path.join(BASE_DIR, "project/static")
 STATIC_URL = "/static/"
 
-# Address to Django server needs to be here in production.
+# Address to Django and frontend server needs to be here in production.
 ALLOWED_HOSTS = [
     "*",
 ]
@@ -38,7 +42,10 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:19006",  # frontend server
 ]
 
-CSRF_TRUSTED_ORIGINS = []
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:19006",  # frontend server
+    "http://localhost:19006",  # frontend server
+]
 
 SERVER_ADDRESS = os.environ.get("SERVER_ADDRESS")
 if SERVER_ADDRESS:

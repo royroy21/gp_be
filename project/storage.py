@@ -1,6 +1,5 @@
-from storages.backends.s3boto3 import S3Boto3Storage  # noqa
-
 from django.conf import settings
+from storages.backends.s3boto3 import S3Boto3Storage  # noqa
 
 
 class StaticStorage(S3Boto3Storage):
