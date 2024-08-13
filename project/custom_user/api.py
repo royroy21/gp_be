@@ -88,6 +88,18 @@ class UserViewSet(viewsets.ModelViewSet):
             )
             params.update({"id__in": favorite_users_ids})
 
+        if request.query_params.get("is_band"):
+            params.update({"is_band": True})
+
+        if request.query_params.get("is_musician"):
+            params.update({"is_musician": True})
+
+        if request.query_params.get("is_looking_for_musicians"):
+            params.update({"is_looking_for_musicians": True})
+
+        if request.query_params.get("is_looking_for_band"):
+            params.update({"is_looking_for_band": True})
+
         query = request.query_params.get("q")
         if query:
             cleaned_query = " ".join(

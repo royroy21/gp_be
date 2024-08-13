@@ -183,6 +183,7 @@ class User(  # type: ignore
 
     search_country = models.CharField(max_length=254, null=True)
     search_genres = models.TextField(null=True)
+    search_instruments = models.TextField(null=True)
     search_vector = search.SearchVectorField(null=True)
 
     def save(self, *args, **kwargs):
@@ -199,12 +200,17 @@ class User(  # type: ignore
         self.search_genres = " ".join(
             genre.genre for genre in self.genres.all()
         )
+        self.search_instruments = " ".join(
+            instrument.instrument for instrument in self.instruments.all()
+        )
         # Saving here for fields to show up for SearchVector.
         super().save()
         self.search_vector = search.SearchVector(
             "username",
+            "location",
             "search_country",
             "search_genres",
+            "search_instruments",
         )
         super().save()
 
