@@ -134,6 +134,10 @@ class User(  # type: ignore
         blank=True,
         related_name="users",
     )
+    is_band = models.BooleanField(default=False)
+    is_musician = models.BooleanField(default=False)
+    is_looking_for_musicians = models.BooleanField(default=False)
+    is_looking_for_band = models.BooleanField(default=False)
 
     # Preferences
     DARK = "dark"
