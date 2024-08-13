@@ -26,6 +26,7 @@ from project.country import api as country_api
 from project.custom_user import api as user_api
 from project.genre import api as genre_api
 from project.gig import api as gig_api
+from project.instrument import api as instrument_api
 
 api_router = DefaultRouter()
 api_router.register(r"user", user_api.UserViewSet, basename="user")
@@ -42,6 +43,7 @@ urlpatterns = [
     path("api/country/", country_api.get_country),
     path("search/country/suggest/", country_api.suggest_country),
     path("search/genre/suggest/", genre_api.suggest_genre),
+    path("search/instrument/suggest/", instrument_api.suggest_instrument),
     path("admin/", admin.site.urls),
     path(
         "api/token/",

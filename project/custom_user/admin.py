@@ -52,6 +52,7 @@ class UserAdmin(BaseUserAdmin):
                         "country",
                         "bio",
                         "genres",
+                        "instruments",
                         "theme",
                         "units",
                         "preferred_units",

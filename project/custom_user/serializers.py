@@ -12,6 +12,7 @@ from project.country import serializers as country_serializers
 from project.custom_user import models
 from project.genre import serializers as genre_serializers
 from project.image import tasks as image_tasks
+from project.instrument import serializers as instrument_serializers
 from project.location.fields import LocationField
 from project.location.helpers import get_distance_between_points
 from project.site import domain
@@ -29,6 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
     location = LocationField()
     country = country_serializers.CountrySerializer()
     genres = genre_serializers.GenreSerializer(many=True)
+    instruments = instrument_serializers.InstrumentSerializer(many=True)
     number_of_active_gigs = serializers.SerializerMethodField()
     image = serializers.ImageField(required=False, allow_null=True)
     thumbnail = serializers.ImageField(read_only=True)
@@ -44,6 +46,7 @@ class UserSerializer(serializers.ModelSerializer):
             "country",
             "bio",
             "genres",
+            "instruments",
             "theme",
             "units",
             "preferred_units",
@@ -61,10 +64,14 @@ class UserSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         copy_of_validated_data = self.copy_data(validated_data)
         genres = copy_of_validated_data.pop("genres", None)
+        instruments = copy_of_validated_data.pop("instruments", None)
         user = super().update(instance, copy_of_validated_data)
         if genres is not None:
             user.genres.clear()
             user.genres.add(*genres)
+        if instruments is not None:
+            user.instruments.clear()
+            user.instruments.add(*instruments)
         if copy_of_validated_data.get("image", None) is not None:
             image_tasks.create_thumbnail.delay("custom_user", "user", user.id)
         return user
@@ -154,6 +161,7 @@ user_non_sensitive_fields = [
 
 class UserSerializerIfNotOwner(serializers.ModelSerializer):
     genres = serializers.SerializerMethodField()
+    instruments = serializers.SerializerMethodField()
     distance_from_user = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
     country = country_serializers.CountrySerializer()
@@ -186,6 +194,18 @@ class UserSerializerIfNotOwner(serializers.ModelSerializer):
         """
         return genre_serializers.GenreSerializer(
             instance.genres.filter(active=True),
+            many=True,
+            read_only=True,
+            context=self.context["request"],
+        ).data
+
+    def get_instruments(self, instance):
+        """
+        Instruments returned like this,
+        so we can pass the context object.
+        """
+        return instrument_serializers.InstrumentSerializer(
+            instance.instruments.filter(active=True),
             many=True,
             read_only=True,
             context=self.context["request"],

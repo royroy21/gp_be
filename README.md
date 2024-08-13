@@ -8,6 +8,7 @@
 On first local install if you need test data run the following commands:
 - `make manage ARGS="import_country_codes"`
 - `make manage ARGS="import_genres"`
+- `make manage ARGS="import_instruments"`
 - `make manage ARGS="create_fake_gigs"`
 
 ## Minikube

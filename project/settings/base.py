@@ -39,6 +39,7 @@ LOCAL_APPS = [
     "project.custom_user",
     "project.genre",
     "project.gig",
+    "project.instrument",
     # HTTP, HTTP2 and WebSocket protocol server.
     # Takes over from WSGI for development server.
     "daphne",

@@ -124,6 +124,11 @@ class User(  # type: ignore
         blank=True,
         related_name="users",
     )
+    instruments = models.ManyToManyField(
+        "instrument.Instrument",
+        blank=True,
+        related_name="users",
+    )
 
     # Preferences
     DARK = "dark"
