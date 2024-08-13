@@ -200,7 +200,7 @@ class UserAPITestCase(TestCase):
             username="fred",
         )
 
-    def test_update_location(self):
+    def test_update_point(self):
         country = country_models.CountryCode.objects.create(
             country="United Kingdom",
             code="GB",
@@ -208,7 +208,7 @@ class UserAPITestCase(TestCase):
         latitude = 51.513833
         longitude = -0.0764861
         data = {
-            "location": {
+            "point": {
                 "latitude": latitude,
                 "longitude": longitude,
             },
@@ -223,17 +223,17 @@ class UserAPITestCase(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.user.refresh_from_db()
-        self.assertEqual(self.user.location.coords, (longitude, latitude))
+        self.assertEqual(self.user.point.coords, (longitude, latitude))
         self.assertEqual(self.user.country, country)
 
     def test_list_users_and_get_distance_from_user(self):
-        self.user.location = Point(-0.0779528, 51.5131749)
+        self.user.point = Point(-0.0779528, 51.5131749)
         self.user.save()
 
         other_user, _ = setup_user_with_drf_client(
             username="mr_meow",
         )
-        other_user.location = Point(-0.0780935, 51.5133267)
+        other_user.point = Point(-0.0780935, 51.5133267)
         other_user.save()
 
         response = self.drf_client.get(path=reverse("user-list"))
@@ -244,14 +244,14 @@ class UserAPITestCase(TestCase):
         )
 
     def test_preferred_units(self):
-        self.user.location = Point(-0.0779528, 51.5131749)
+        self.user.point = Point(-0.0779528, 51.5131749)
         self.user.preferred_units = User.MILES
         self.user.save()
 
         other_user, _ = setup_user_with_drf_client(
             username="mr_meow",
         )
-        other_user.location = Point(-0.0780935, 51.5133267)
+        other_user.point = Point(-0.0780935, 51.5133267)
         other_user.save()
 
         response = self.drf_client.get(path=reverse("user-list"))
@@ -332,15 +332,15 @@ class UserSerializerTestCase(TestCase):
     def setUp(self):
         self.user = create_user(username="fred")
 
-    def test_update_location(self):
+    def test_update_point(self):
         country = country_models.CountryCode.objects.create(
             country="United Kingdom",
             code="GB",
         )
         latitude = 51.513833
         longitude = -0.0764861
-        location = {
-            "location": {
+        point = {
+            "point": {
                 "latitude": latitude,
                 "longitude": longitude,
             },
@@ -350,12 +350,12 @@ class UserSerializerTestCase(TestCase):
         }
         serializer = serializers.UserSerializer(
             self.user,
-            data=location,
+            data=point,
             partial=True,
         )
         self.assertTrue(serializer.is_valid())
         user = serializer.save()
-        self.assertEqual(user.location.coords, (longitude, latitude))
+        self.assertEqual(user.point.coords, (longitude, latitude))
         self.assertEqual(self.user.country, country)
 
     def test_update_country_check_units_update_to_miles(self):

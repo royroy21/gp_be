@@ -103,7 +103,7 @@ class User(  # type: ignore
     last_login = models.DateTimeField(null=True, blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
     subscribed_to_emails = models.BooleanField(default=True)
-    location = models.PointField(default=Point([]), blank=True)
+    point = models.PointField(default=Point([]), blank=True)
     country = models.ForeignKey(
         "country.CountryCode",
         on_delete=models.SET_NULL,

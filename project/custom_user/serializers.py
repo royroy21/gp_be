@@ -27,7 +27,7 @@ COUNTRIES_THAT_USE_MILES = [
 
 
 class UserSerializer(serializers.ModelSerializer):
-    location = LocationField()
+    point = LocationField()
     country = country_serializers.CountrySerializer()
     genres = genre_serializers.GenreSerializer(many=True)
     instruments = instrument_serializers.InstrumentSerializer(many=True)
@@ -42,7 +42,7 @@ class UserSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "subscribed_to_emails",
-            "location",
+            "point",
             "country",
             "bio",
             "genres",
@@ -151,7 +151,7 @@ user_non_sensitive_fields = [
     not in [
         "email",
         "subscribed_to_emails",
-        "location",
+        "point",
         "theme",
         "units",
         "preferred_units",
@@ -176,11 +176,11 @@ class UserSerializerIfNotOwner(serializers.ModelSerializer):
     def get_distance_from_user(self, obj):
         user = self.context["request"].user
         if user.is_authenticated:
-            if user.location and obj.location:
+            if user.point and obj.point:
                 units = user.preferred_units or user.units
                 distance = get_distance_between_points(
-                    point_1=user.location,
-                    point_2=obj.location,
+                    point_1=user.point,
+                    point_2=obj.point,
                     units=units,
                 )
                 return f"{distance} {units}"

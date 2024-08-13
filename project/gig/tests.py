@@ -174,11 +174,11 @@ class GigAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_list_gigs_and_get_distance_from_user(self):
-        self.user.location = Point(-0.0779528, 51.5131749)
+        self.user.point = Point(-0.0779528, 51.5131749)
         self.user.save()
 
         other_user = self.other_gig.user
-        other_user.location = Point(-0.0780935, 51.5133267)
+        other_user.point = Point(-0.0780935, 51.5133267)
         other_user.save()
 
         response = self.drf_client.get(path=reverse("gig-api-list"))
