@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db.models import Max
 from rest_framework import exceptions, mixins
 from rest_framework.decorators import action
@@ -6,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from project.chat import models, serializers
-from project.core import permissions
+from project.core import permissions, search
 from project.core.api import mixins as core_mixins
 
 
@@ -81,16 +80,13 @@ class RoomViewSet(
 
     @action(detail=False, methods=["GET"])
     def search(self, request):
-        query = request.query_params.get("q")
-        cleaned_query = " ".join(
-            word
-            for word in query.split(" ")
-            if word.lower() not in settings.ENGLISH_STOP_WORDS
-        )
+        params = {}
+        query = request.query_params.get("q", "")
+        search.update_params_with_search_vectors(query, params)
         subquery = (
             models.Room.objects.filter(
                 members=self.request.user,
-                search_vector=cleaned_query,
+                **params,
             )
             .distinct("id")
             .values_list("id", flat=True)

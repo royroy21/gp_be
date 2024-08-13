@@ -1,7 +1,6 @@
 import json
 
 from django import forms, http
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -10,7 +9,7 @@ from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from project.core import permissions
+from project.core import permissions, search
 from project.core.drf import blacklist
 from project.custom_email import send_reset_password_email
 from project.custom_user import models, serializers
@@ -102,12 +101,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
         query = request.query_params.get("q")
         if query:
-            cleaned_query = " ".join(
-                word
-                for word in query.split(" ")
-                if word.lower() not in settings.ENGLISH_STOP_WORDS
-            )
-            params.update({"search_vector": cleaned_query})
+            search.update_params_with_search_vectors(query, params)
 
         subquery = (
             User.objects.filter(**params)

@@ -1,11 +1,10 @@
-from django.conf import settings
 from django.http import Http404
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from project.core import permissions
+from project.core import permissions, search
 from project.core.api import viewsets as core_viewsets
 from project.gig import models, serializers
 
@@ -125,12 +124,7 @@ class GigViewSet(core_viewsets.CustomModelViewSet):
 
         query = request.query_params.get("q")
         if query:
-            cleaned_query = " ".join(
-                word
-                for word in query.split(" ")
-                if word.lower() not in settings.ENGLISH_STOP_WORDS
-            )
-            params.update({"search_vector": cleaned_query})
+            search.update_params_with_search_vectors(query, params)
 
         subquery = (
             models.Gig.objects.filter(**params)
