@@ -54,6 +54,7 @@ class UserAdmin(BaseUserAdmin):
                         "bio",
                         "genres",
                         "instruments",
+                        "instruments_needed",
                         "is_band",
                         "is_musician",
                         "is_looking_for_musicians",

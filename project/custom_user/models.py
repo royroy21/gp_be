@@ -134,6 +134,12 @@ class User(  # type: ignore
         blank=True,
         related_name="users",
     )
+    instruments_needed = models.ManyToManyField(
+        "instrument.Instrument",
+        blank=True,
+        related_name="instruments_needed_by_users",
+        help_text="Instruments needed by band",
+    )
     is_band = models.BooleanField(default=False)
     is_musician = models.BooleanField(default=False)
     is_looking_for_musicians = models.BooleanField(default=False)
@@ -184,6 +190,7 @@ class User(  # type: ignore
     search_country = models.CharField(max_length=254, null=True)
     search_genres = models.TextField(null=True)
     search_instruments = models.TextField(null=True)
+    search_instruments_needed = models.TextField(null=True)
     search_vector = search.SearchVectorField(null=True)
 
     def save(self, *args, **kwargs):
@@ -200,9 +207,15 @@ class User(  # type: ignore
         self.search_genres = " ".join(
             genre.genre for genre in self.genres.all()
         )
-        self.search_instruments = " ".join(
-            instrument.instrument for instrument in self.instruments.all()
-        )
+        if self.is_musician:
+            self.search_instruments = " ".join(
+                instrument.instrument for instrument in self.instruments.all()
+            )
+        if self.is_band:
+            self.search_instruments_needed = " ".join(
+                instrument.instrument
+                for instrument in self.instruments_needed.all()
+            )
         # Saving here for fields to show up for SearchVector.
         super().save()
         self.search_vector = search.SearchVector(
@@ -211,6 +224,7 @@ class User(  # type: ignore
             "search_country",
             "search_genres",
             "search_instruments",
+            "search_instruments_needed",
         )
         super().save()
 

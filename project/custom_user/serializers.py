@@ -31,6 +31,7 @@ class UserSerializer(serializers.ModelSerializer):
     country = country_serializers.CountrySerializer()
     genres = genre_serializers.GenreSerializer(many=True)
     instruments = instrument_serializers.InstrumentSerializer(many=True)
+    instruments_needed = instrument_serializers.InstrumentSerializer(many=True)
     number_of_active_gigs = serializers.SerializerMethodField()
     image = serializers.ImageField(required=False, allow_null=True)
     thumbnail = serializers.ImageField(read_only=True)
@@ -48,6 +49,7 @@ class UserSerializer(serializers.ModelSerializer):
             "bio",
             "genres",
             "instruments",
+            "instruments_needed",
             "is_band",
             "is_musician",
             "is_looking_for_musicians",
@@ -70,6 +72,9 @@ class UserSerializer(serializers.ModelSerializer):
         copy_of_validated_data = self.copy_data(validated_data)
         genres = copy_of_validated_data.pop("genres", None)
         instruments = copy_of_validated_data.pop("instruments", None)
+        instruments_needed = copy_of_validated_data.pop(
+            "instruments_needed", None
+        )
         user = super().update(instance, copy_of_validated_data)
         if genres is not None:
             user.genres.clear()
@@ -77,6 +82,9 @@ class UserSerializer(serializers.ModelSerializer):
         if instruments is not None:
             user.instruments.clear()
             user.instruments.add(*instruments)
+        if instruments_needed is not None:
+            user.instruments_needed.clear()
+            user.instruments_needed.add(*instruments_needed)
         if copy_of_validated_data.get("image", None) is not None:
             image_tasks.create_thumbnail.delay("custom_user", "user", user.id)
         return user
@@ -167,6 +175,7 @@ user_non_sensitive_fields = [
 class UserSerializerIfNotOwner(serializers.ModelSerializer):
     genres = serializers.SerializerMethodField()
     instruments = serializers.SerializerMethodField()
+    instruments_needed = serializers.SerializerMethodField()
     distance_from_user = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
     country = country_serializers.CountrySerializer()
@@ -211,6 +220,18 @@ class UserSerializerIfNotOwner(serializers.ModelSerializer):
         """
         return instrument_serializers.InstrumentSerializer(
             instance.instruments.filter(active=True),
+            many=True,
+            read_only=True,
+            context=self.context["request"],
+        ).data
+
+    def get_instruments_needed(self, instance):
+        """
+        Instruments needed returned like this,
+        so we can pass the context object.
+        """
+        return instrument_serializers.InstrumentSerializer(
+            instance.instruments_needed.filter(active=True),
             many=True,
             read_only=True,
             context=self.context["request"],
