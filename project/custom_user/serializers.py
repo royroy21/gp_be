@@ -43,6 +43,7 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "subscribed_to_emails",
             "point",
+            "location",
             "country",
             "bio",
             "genres",

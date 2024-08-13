@@ -104,6 +104,11 @@ class User(  # type: ignore
     date_joined = models.DateTimeField(auto_now_add=True)
     subscribed_to_emails = models.BooleanField(default=True)
     point = models.PointField(default=Point([]), blank=True)
+    location = models.CharField(
+        max_length=254,
+        help_text="Town or city",
+        default=str,
+    )
     country = models.ForeignKey(
         "country.CountryCode",
         on_delete=models.SET_NULL,

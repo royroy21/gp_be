@@ -49,6 +49,7 @@ class UserAdmin(BaseUserAdmin):
                     "fields": (
                         "subscribed_to_emails",
                         "point",
+                        "location",
                         "country",
                         "bio",
                         "genres",
