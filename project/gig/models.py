@@ -31,6 +31,8 @@ class Gig(BaseModel):
         related_name="gigs",
     )
     has_spare_ticket = models.BooleanField(default=False)
+    looking_for_gigpig = models.BooleanField(default=False)
+    is_free_gig = models.BooleanField(default=False)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField(
         default=None,

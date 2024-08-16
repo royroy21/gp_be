@@ -35,6 +35,8 @@ class GigSerializer(serializers.ModelSerializer):
             "description",
             "genres",
             "has_spare_ticket",
+            "looking_for_gigpig",
+            "is_free_gig",
             "start_date",
             "end_date",
             "image",

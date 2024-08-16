@@ -104,6 +104,12 @@ class GigViewSet(core_viewsets.CustomModelViewSet):
         if request.query_params.get("has_spare_ticket"):
             params.update({"has_spare_ticket": True})
 
+        if request.query_params.get("looking_for_gigpig"):
+            params.update({"looking_for_gigpig": True})
+
+        if request.query_params.get("is_free_gig"):
+            params.update({"is_free_gig": True})
+
         if request.query_params.get("has_replies"):
             params.update(
                 {
