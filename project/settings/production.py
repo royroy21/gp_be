@@ -125,4 +125,7 @@ CORS_ALLOW_HEADERS = (
     "Sec-Ch-Ua",
     "Sec-Ch-Ua-Mobile",
     "Sec-Ch-Ua-Platform",
+    "Sec-Fetch-Dest",
+    "Sec-Fetch-Mode",
+    "Sec-Fetch-Site",
 )
