@@ -244,7 +244,11 @@ FRONTEND_DOMAIN = os.environ.get("FRONTEND_DOMAIN", "example.com")
 
 # Email
 EMAIL_HOST = os.environ.get("EMAIL_HOST")
-EMAIL_PORT = os.environ.get("EMAIL_PORT")
+email_port = os.environ.get("EMAIL_PORT")
+try:
+    EMAIL_PORT = int(email_port)
+except (TypeError, ValueError):
+    EMAIL_PORT = None
 EMAIL_USER = os.environ.get("EMAIL_USER")
 EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
 EMAIL_DEFAULT_FROM = os.environ.get("EMAIL_DEFAULT_FROM")

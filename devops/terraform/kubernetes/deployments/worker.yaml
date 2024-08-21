@@ -47,5 +47,17 @@ spec:
           value: ${ aws_bucket_domain_name }
         - name: AWS_S3_REGION_NAME
           value: ${ aws_s3_region_name }
+        - name: EMAIL_HOST
+          value: ${ email_host }
+        - name: EMAIL_PORT
+          value: ${ email_port }
+        - name: EMAIL_USER
+          value: ${ email_user }
+        - name: EMAIL_PASSWORD
+          value: ${ email_password }
+        - name: EMAIL_DEFAULT_FROM
+          value: ${ email_default_from }
+        - name: EMAIL_DEFAULT_SUBJECT
+          value: ${ email_default_subject }
       imagePullSecrets:
       - name: dockerhub-config

@@ -10,7 +10,37 @@ variable "initial_deployment" {
 # Email
 #############################################
 variable "email" {
-  description = "Email"
+  description = "Email used for things like SLL and cloudflare"
+  type        = string
+}
+
+variable email_host {
+  description = "Email host used for sending emails from backend"
+  type        = "string"
+}
+
+variable email_port {
+  description = "Email port used for sending emails from backend"
+  type        = string
+}
+
+variable email_user {
+  description = "Email user used for sending emails from backend"
+  type        = string
+}
+
+variable email_password {
+  description = "Email password used for sending emails from backend"
+  type        = string
+}
+
+variable email_default_from {
+  description = "Email default from used for sending emails from backend"
+  type        = string
+}
+
+variable email_default_subject {
+  description = "Email default subject used for sending emails from backend"
   type        = string
 }
 

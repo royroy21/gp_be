@@ -75,6 +75,12 @@ data "template_file" "django_deployment_yaml" {
     django_secret           = var.django_secret
     frontend_domain         = var.frontend_domain
     backend_domain          = var.backend_domain
+    email_host              = var.email_host
+    email_port              = var.email_port
+    email_user              = var.email_user
+    email_password          = var.email_password
+    email_default_from      = var.email_default_from
+    email_default_subject   = var.email_default_subject
   }
 }
 
@@ -147,6 +153,12 @@ data "template_file" "worker_deployment_yaml" {
     django_secret           = var.django_secret
     frontend_domain         = var.frontend_domain
     backend_domain          = var.backend_domain
+    email_host              = var.email_host
+    email_port              = var.email_port
+    email_user              = var.email_user
+    email_password          = var.email_password
+    email_default_from      = var.email_default_from
+    email_default_subject   = var.email_default_subject
   }
 }
 
