@@ -65,7 +65,7 @@ data "template_file" "django_deployment_yaml" {
     db_user                 = digitalocean_database_cluster.postgres_deployment.user
     db_password             = digitalocean_database_cluster.postgres_deployment.password
     db_host                 = digitalocean_database_cluster.postgres_deployment.private_host
-    db_port                 = digitalocean_database_cluster.postgres_deployment.port
+    db_port                 = tostring(digitalocean_database_cluster.postgres_deployment.port)
     aws_access_key_id       = var.do_spaces_access_id
     aws_secret_access_key   = var.do_spaces_secret_key
     aws_storage_bucket_name = digitalocean_spaces_bucket.bucket.name
@@ -76,7 +76,7 @@ data "template_file" "django_deployment_yaml" {
     frontend_domain         = var.frontend_domain
     backend_domain          = var.backend_domain
     email_host              = var.email_host
-    email_port              = var.email_port
+    email_port              = tostring(var.email_port)
     email_user              = var.email_user
     email_password          = var.email_password
     email_default_from      = var.email_default_from
@@ -157,7 +157,7 @@ data "template_file" "worker_deployment_yaml" {
     frontend_domain         = var.frontend_domain
     backend_domain          = var.backend_domain
     email_host              = var.email_host
-    email_port              = var.email_port
+    email_port              = tostring(var.email_port)
     email_user              = var.email_user
     email_password          = var.email_password
     email_default_from      = var.email_default_from

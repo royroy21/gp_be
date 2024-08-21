@@ -7,7 +7,7 @@ resource "digitalocean_spaces_bucket" "bucket" {
 }
 
 resource "digitalocean_spaces_bucket_cors_configuration" "bucket" {
-  bucket = digitalocean_spaces_bucket.bucket.id
+  bucket = digitalocean_spaces_bucket.bucket.name
   region = var.region
 
   cors_rule {
@@ -16,15 +16,11 @@ resource "digitalocean_spaces_bucket_cors_configuration" "bucket" {
     allowed_origins = [
 #      "https://${kubernetes_service.nginx_service.status[0].load_balancer[0].ingress[0].ip}",
 #      "https://${kubernetes_service.django_service.spec[0].cluster_ip}",
+      "https://${var.frontend_domain}",
       "https://${var.backend_domain}"
     ]
     max_age_seconds = 3000
   }
-
-  depends_on = [
-    kubernetes_service.django_service,
-    kubernetes_service.nginx_service,
-  ]
 }
 
 resource "digitalocean_spaces_bucket_policy" "bucket" {
