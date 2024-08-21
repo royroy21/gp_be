@@ -49,7 +49,17 @@ data:
                 add_header 'Access-Control-Allow-Origin' '*';
                 add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
                 add_header 'Access-Control-Allow-Headers' 'Origin, X-Requested-With, Content-Type, Accept';
-            }    
+                # add_header 'Access-Control-Max-Age' 3600;
+    
+                # Handle OPTIONS preflight requests
+                if ($request_method = OPTIONS ) {
+                    add_header 'Access-Control-Allow-Origin' '*';
+                    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+                    add_header 'Access-Control-Allow-Headers' 'Origin, X-Requested-With, Content-Type, Accept';
+                    # add_header 'Access-Control-Max-Age' 3600;
+                    return 204;
+                }
+            }
     
             location / {
                 proxy_pass http://django;

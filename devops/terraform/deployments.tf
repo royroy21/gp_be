@@ -130,8 +130,10 @@ resource "kubectl_manifest" "nginx_initial_deployment" {
 resource "kubectl_manifest" "nginx_deployment" {
   count     = var.initial_deployment ? 0 : 1
   yaml_body = file("${path.module}/kubernetes/deployments/nginx.yaml")
+  force_new = true  #  Forces delete & create of resources if the yaml_body changes.
 
   depends_on = [
+    kubectl_manifest.nginx_config,
     kubectl_manifest.certificate,
   ]
 }
