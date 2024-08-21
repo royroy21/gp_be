@@ -73,6 +73,7 @@ data "template_file" "django_deployment_yaml" {
     aws_s3_region_name      = digitalocean_spaces_bucket.bucket.region
     django_image            = var.django_image
     django_secret           = var.django_secret
+    frontend_domain         = var.frontend_domain
     backend_domain          = var.backend_domain
   }
 }
@@ -144,6 +145,7 @@ data "template_file" "worker_deployment_yaml" {
     aws_s3_region_name      = digitalocean_spaces_bucket.bucket.region
     django_image            = var.django_image
     django_secret           = var.django_secret
+    frontend_domain         = var.frontend_domain
     backend_domain          = var.backend_domain
   }
 }

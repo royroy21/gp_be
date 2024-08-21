@@ -50,9 +50,11 @@ MEDIA_ROOT = "media/"
 STATICFILES_STORAGE = "storage.StaticStorage"
 DEFAULT_FILE_STORAGE = "storage.MediaStorage"
 
+FRONTEND_DOMAIN = os.environ["FRONTEND_DOMAIN"]
 BACKEND_DOMAIN = os.environ["BACKEND_DOMAIN"]
 
 ALLOWED_HOSTS = [
+    FRONTEND_DOMAIN,
     BACKEND_DOMAIN,
 ]
 
