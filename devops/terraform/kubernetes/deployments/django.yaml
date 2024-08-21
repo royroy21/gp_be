@@ -24,6 +24,8 @@ spec:
           value: "redis://cache:6379/2"
         - name: FRONTEND_DOMAIN
           value: ${ frontend_domain }
+        - name: DO_APP_PLATFORM_DOMAIN
+          value: ${ do_app_platform_domain }
         - name: BACKEND_DOMAIN
           value: ${ backend_domain }
         - name: DB_NAME

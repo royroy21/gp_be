@@ -48,7 +48,6 @@ data "template_file" "certificate_yaml" {
   template = file("${path.module}/kubernetes/ssl/certificate.yaml")
 
   vars = {
-    frontend_domain = var.frontend_domain
     backend_domain  = var.backend_domain
   }
 }

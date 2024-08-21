@@ -17,6 +17,7 @@ resource "digitalocean_spaces_bucket_cors_configuration" "bucket" {
 #      "https://${kubernetes_service.nginx_service.status[0].load_balancer[0].ingress[0].ip}",
 #      "https://${kubernetes_service.django_service.spec[0].cluster_ip}",
       "https://${var.frontend_domain}",
+      "https://${var.do_app_platform_domain}",
       "https://${var.backend_domain}"
     ]
     max_age_seconds = 3000

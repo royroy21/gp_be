@@ -74,6 +74,7 @@ data "template_file" "django_deployment_yaml" {
     django_image            = var.django_image
     django_secret           = var.django_secret
     frontend_domain         = var.frontend_domain
+    do_app_platform_domain  = var.do_app_platform_domain
     backend_domain          = var.backend_domain
     email_host              = var.email_host
     email_port              = tostring(var.email_port)
@@ -155,6 +156,7 @@ data "template_file" "worker_deployment_yaml" {
     django_image            = var.django_image
     django_secret           = var.django_secret
     frontend_domain         = var.frontend_domain
+    do_app_platform_domain  = var.do_app_platform_domain
     backend_domain          = var.backend_domain
     email_host              = var.email_host
     email_port              = tostring(var.email_port)

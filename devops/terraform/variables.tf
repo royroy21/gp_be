@@ -52,6 +52,11 @@ variable "frontend_domain" {
   type        = string
 }
 
+variable "do_app_platform_domain" {
+  description = "DigitalOcean App Platform domain"
+  type        = string
+}
+
 variable "backend_domain" {
   description = "Backend domain"
   type        = string
