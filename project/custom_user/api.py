@@ -19,7 +19,9 @@ User = get_user_model()
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.filter(is_active=True).order_by("username")
+    queryset = User.objects.filter(is_active=True, is_staff=False).order_by(
+        "username"
+    )
     serializer_class = serializers.UserSerializer
     serializer_class_if_not_owner = serializers.UserSerializerIfNotOwner
 
@@ -72,6 +74,7 @@ class UserViewSet(viewsets.ModelViewSet):
     def search(self, request):
         params = {
             "is_active": True,
+            "is_staff": False,
         }
         if request.query_params.get("has_active_gigs"):
             params.update(

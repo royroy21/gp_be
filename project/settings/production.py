@@ -120,7 +120,6 @@ CORS_ALLOW_HEADERS = (
     "Access-Control-Allow-Origin",
     "Referer",
     "User-Agent",
-
     # Sent by Digital Ocean App Platform
     "Sec-Ch-Ua",
     "Sec-Ch-Ua-Mobile",
