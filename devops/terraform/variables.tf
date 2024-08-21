@@ -16,7 +16,7 @@ variable "email" {
 
 variable email_host {
   description = "Email host used for sending emails from backend"
-  type        = "string"
+  type        = string
 }
 
 variable email_port {
