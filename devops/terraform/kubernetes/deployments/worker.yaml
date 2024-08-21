@@ -64,6 +64,6 @@ spec:
         - name: SENTRY_ORGANISATION
           value: ${ sentry_org }
         - name: SENTRY_PROJECT
-          value: ${ sentry_project }
+          value: "${format("%d", sentry_project)}"
       imagePullSecrets:
       - name: dockerhub-config
