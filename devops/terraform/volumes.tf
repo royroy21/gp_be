@@ -14,8 +14,6 @@ resource "digitalocean_spaces_bucket_cors_configuration" "bucket" {
     allowed_headers = ["*"]
     allowed_methods = ["GET", "PUT", "POST", "DELETE"]
     allowed_origins = [
-#      "https://${kubernetes_service.nginx_service.status[0].load_balancer[0].ingress[0].ip}",
-#      "https://${kubernetes_service.django_service.spec[0].cluster_ip}",
       "https://${var.frontend_domain}",
       "https://${var.do_app_platform_domain}",
       "https://${var.backend_domain}"
@@ -31,23 +29,6 @@ resource "digitalocean_spaces_bucket_policy" "bucket" {
   policy = jsonencode({
     "Version": "2012-10-17",
     "Statement": [
-      {
-        "Effect": "Deny",
-        "Principal": "*",
-        "Action": "s3:*",
-        "Resource": [
-          "arn:aws:s3:::${digitalocean_spaces_bucket.bucket.name}/*"
-        ],
-        "Condition": {
-          "StringNotLike": {
-            "aws:Referer": [
-              "https://${var.frontend_domain}/*",
-              "https://${var.do_app_platform_domain}/*",
-              "https://${var.backend_domain}/*"
-            ]
-          }
-        }
-      },
       {
         "Effect": "Allow",
         "Principal": "*",
@@ -70,11 +51,6 @@ resource "digitalocean_spaces_bucket_policy" "bucket" {
       }
     ]
   })
-
-  depends_on = [
-    kubernetes_service.django_service,
-    kubernetes_service.nginx_service,
-  ]
 }
 
 #############################################
