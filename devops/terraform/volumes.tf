@@ -40,7 +40,11 @@ resource "digitalocean_spaces_bucket_policy" "bucket" {
         ],
         "Condition": {
           "StringNotLike": {
-            "aws:Referer": "https://${var.backend_domain}/*"
+            "aws:Referer": [
+              "https://${var.frontend_domain}/*",
+              "https://${var.do_app_platform_domain}/*",
+              "https://${var.backend_domain}/*"
+            ]
           }
         }
       },
@@ -56,7 +60,11 @@ resource "digitalocean_spaces_bucket_policy" "bucket" {
         ],
         "Condition": {
           "StringLike": {
-            "aws:Referer": "https://${var.backend_domain}/*"
+            "aws:Referer": [
+              "https://${var.frontend_domain}/*",
+              "https://${var.do_app_platform_domain}/*",
+              "https://${var.backend_domain}/*"
+            ]
           }
         }
       }
