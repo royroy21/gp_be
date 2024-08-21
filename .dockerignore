@@ -1,0 +1,24 @@
+# Python
+__pycache__
+
+# Mypy
+.mypy_cache
+
+# IDE
+.idea
+
+# Local custom settings
+project/settings/local_custom.py
+
+# Staticfiles
+project/staticfiles/
+project/static/
+
+# Local media
+project/media/
+
+# Terraform
+devops/terraform/terraform.tfvars
+devops/terraform/.terraform*
+devops/terraform/terraform.tfstate
+devops/terraform/terraform.tfstate.backup
