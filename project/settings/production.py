@@ -97,7 +97,7 @@ CORS_ALLOW_ALL_ORIGINS = False
 # CORS :/
 # https://gankrin.org/cors-no-access-control-allow-origin-header-error-django/
 # https://pypi.org/project/django-cors-headers/
-CORS_ALLOWED_ORIGINS = [  # TODO - frontend server address here.
+CORS_ALLOWED_ORIGINS = [
     f"https://{FRONTEND_DOMAIN}",
     f"https://{DO_APP_PLATFORM_DOMAIN}",
     f"https://{BACKEND_DOMAIN}",
@@ -121,6 +121,9 @@ CORS_ALLOW_HEADERS = (
     "Referer",
     "User-Agent",
     # Sent by Digital Ocean App Platform
+    "Accept-Language",
+    "Pragma",
+    "Priority",
     "Sec-Ch-Ua",
     "Sec-Ch-Ua-Mobile",
     "Sec-Ch-Ua-Platform",
