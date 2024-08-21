@@ -1,10 +1,43 @@
 # flake8: noqa
+
+import sentry_sdk
 from corsheaders import defaults
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.django import DjangoIntegration
 from storages.backends.s3boto3 import S3Boto3Storage  # noqa
 
 from .base import *  # noqa
 
 ENV = "production"
+DEBUG = False
+
+
+# Optional: To filter out certain types of errors, you can use before_send
+# Example: Ignore 404 errors
+# def before_send(event, hint):
+#     if event.get("logger") == "django.request" and event.get("level") == "error":
+#         request = hint.get("request")
+#         if request and request.status_code == 404:
+#             return None
+#     return event
+
+sentry_key = os.environ["SENTRY_KEY"]
+sentry_org = os.environ["SENTRY_ORGANISATION"]
+sentry_project = os.environ["SENTRY_PROJECT"]
+
+sentry_sdk.init(
+    dsn=f"https://{sentry_key}@{sentry_org}.ingest.sentry.io/{sentry_project}",
+    integrations=[
+        CeleryIntegration(),
+        DjangoIntegration(),
+    ],
+    send_default_pii=True,  # Send personally identifiable information (PII) data
+    environment=ENV,
+    traces_sample_rate=1.0,  # Adjust the sample rate for performance monitoring
+    profiles_sample_rate=0.1  # Currently captures 10% of data to save on costs
+    # before_send=before_send,
+)
+
 
 DATABASES = {
     "default": {

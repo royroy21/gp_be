@@ -81,6 +81,9 @@ data "template_file" "django_deployment_yaml" {
     email_password          = var.email_password
     email_default_from      = var.email_default_from
     email_default_subject   = var.email_default_subject
+    sentry_key              = var.sentry_key
+    sentry_org              = var.sentry_org
+    sentry_project          = var.sentry_project
   }
 }
 
@@ -159,6 +162,9 @@ data "template_file" "worker_deployment_yaml" {
     email_password          = var.email_password
     email_default_from      = var.email_default_from
     email_default_subject   = var.email_default_subject
+    sentry_key              = var.sentry_key
+    sentry_org              = var.sentry_org
+    sentry_project          = var.sentry_project
   }
 }
 

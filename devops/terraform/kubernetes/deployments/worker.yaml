@@ -59,5 +59,11 @@ spec:
           value: ${ email_default_from }
         - name: EMAIL_DEFAULT_SUBJECT
           value: ${ email_default_subject }
+        - name: SENTRY_KEY
+          value: ${ sentry_key }
+        - name: SENTRY_ORGANISATION
+          value: ${ sentry_org }
+        - name: SENTRY_PROJECT
+          value: ${ sentry_project }
       imagePullSecrets:
       - name: dockerhub-config

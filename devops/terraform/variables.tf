@@ -58,7 +58,7 @@ variable "backend_domain" {
 }
 
 #############################################
-# Digital Ocean variables
+# Digital Ocean
 #############################################
 variable "do_token" {
   description = "DigitalOcean API token"
@@ -76,7 +76,7 @@ variable "do_spaces_secret_key" {
 }
 
 #############################################
-# Cloudflare variables
+# Cloudflare
 #############################################
 variable "cloudflare_api_token" {
   description = "cloudflare API token"
@@ -89,7 +89,7 @@ variable "cloudflare_zone_id" {
 }
 
 #############################################
-# Cloudflare variables
+# Docker Hub
 #############################################
 variable "dockerhub_config" {
   description = "Full path to the dockerhub config file used to download images from private registry"
@@ -97,7 +97,7 @@ variable "dockerhub_config" {
 }
 
 #############################################
-# Cluster variables
+# Cluster
 #############################################
 variable cluster_name {
   description = "The name of the kubernetes cluster to create"
@@ -129,7 +129,7 @@ variable default_node_size {
 }
 
 #############################################
-# Django variables
+# Django
 #############################################
 variable django_image {
   description = "The image used for Django and worker deployments"
@@ -138,5 +138,24 @@ variable django_image {
 
 variable django_secret {
   description = "The secret key used for Django and worker deployments"
+  type        = string
+}
+
+#############################################
+# Sentry
+#############################################
+
+variable sentry_key {
+  description = "Sentry key"
+  type        = string
+}
+
+variable sentry_org {
+  description = "Sentry org"
+  type        = string
+}
+
+variable sentry_project {
+  description = "Sentry project"
   type        = string
 }
