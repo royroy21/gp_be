@@ -81,8 +81,8 @@ MEDIA_URL = f"{AWS_S3_CUSTOM_DOMAIN}/media/"
 MEDIA_ROOT = "media/"
 
 # Use custom storage classes
-STATICFILES_STORAGE = "storage.StaticStorage"
-DEFAULT_FILE_STORAGE = "storage.MediaStorage"
+STATICFILES_STORAGE = "project.storage.StaticStorage"
+DEFAULT_FILE_STORAGE = "project.storage.MediaStorage"
 
 FRONTEND_DOMAIN = os.environ["FRONTEND_DOMAIN"]
 DO_APP_PLATFORM_DOMAIN = os.environ["DO_APP_PLATFORM_DOMAIN"]
