@@ -18,7 +18,8 @@ RUN apt-get update && apt-get install -y \
     tzdata \
     python3-pip \
     gdal-bin \
-    postgresql-client
+    postgresql-client \
+    telnet
 
 RUN pip install -r requirements.txt
 RUN chown -R appuser:appuser /code
