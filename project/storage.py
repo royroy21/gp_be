@@ -12,5 +12,5 @@ class StaticStorage(S3Boto3Storage):
 class MediaStorage(S3Boto3Storage):
     location = settings.MEDIA_ROOT
     default_acl = "public-read"
-    file_overwrite = True
+    file_overwrite = False
     custom_domain = settings.AWS_S3_CUSTOM_DOMAIN
