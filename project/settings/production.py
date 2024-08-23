@@ -10,6 +10,7 @@ from .base import *  # noqa
 
 ENV = "production"
 DEBUG = False
+CREATE_THUMBNAILS_ENABLED = True
 
 
 # Optional: To filter out certain types of errors, you can use before_send
